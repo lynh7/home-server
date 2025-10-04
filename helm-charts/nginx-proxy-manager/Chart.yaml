@@ -1,0 +1,9 @@
+apiVersion: v2
+name: nginx-proxy-manager
+description: A lightweight Helm chart for Nginx Proxy Manager
+type: application
+version: 0.1.0
+appVersion: "v2.12.6"
+maintainers:
+  - name: Andy
+    email: trthienan17@outlook.com
