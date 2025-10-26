@@ -1,6 +1,15 @@
 networks:
   web:
     driver: bridge
+  macvlan_net:
+    driver: macvlan
+    driver_opts:
+      parent: eth0  # <-- your host's network interface name
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+          ip_range: 192.168.1.96/29 # Optional small range for Docker (192.168.1.97–103)
 
 services:
   traefik:
@@ -27,30 +36,22 @@ services:
     networks:
       - web
 
-  # pihole:
-  #   image: pihole/pihole:latest
-  #   container_name: pihole
-  #   hostname: pihole
-  #   restart: unless-stopped
-  #   environment:
-  #     TZ: "Asia/Ho_Chi_Minh"
-  #     WEBPASSWORD: "changeme"
-  #     DNSMASQ_LISTENING: "all"
-  #     PIHOLE_DNS_: "1.1.1.1;8.8.8.8"
-  #   volumes:
-  #     - ./pihole/etc-pihole:/etc/pihole
-  #     - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
-  #   cap_add:
-  #     - NET_ADMIN
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.pihole.rule=Host(`pihole.tlta.online`)"
-  #     - "traefik.http.services.pihole.loadbalancer.server.port=80"
-  #     - "traefik.http.routers.pihole.entrypoints=websecure"
-  #     - "traefik.http.routers.pihole.tls.certresolver=letsencrypt"
-  #   networks:
-  #     - web
-  #     - dns
-  #   ports:
-  #     - "53:53/tcp"
-  #     - "53:53/udp"  # Needed for DNS resolution
+  pihole:
+      image: pihole/pihole:2025.07.1
+      container_name: pihole
+      hostname: pihole
+      restart: unless-stopped
+      networks:
+        macvlan_net:
+          ipv4_address: 192.168.1.98
+      environment:
+        TZ: "Asia/Ho_Chi_Minh"
+        WEBPASSWORD: '${PIHOLE_PASSWORD}'
+        DNSMASQ_LISTENING: "all"
+        PIHOLE_DNS_: "1.1.1.1;8.8.8.8"
+        ADLISTS_URL: 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt'
+      volumes:
+        - ./pihole/etc-pihole:/etc/pihole
+        - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+      cap_add:
+        - NET_ADMIN
