@@ -1,0 +1,23 @@
+# Ignore build artifacts and temporary files
+/target/
+/dist/
+/build/
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Ignore environment-specific files and secrets
+.env
+.env.*
+*.env
+
+# Ignore editor/IDE specific files
+.idea/
+.vscode/
+*.iml
+
+# Ignore Docker-specific generated files
+volumes/
+data/
+*.db
