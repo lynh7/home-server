@@ -1,0 +1,32 @@
+http:
+  routers:
+    n8n:
+      rule: "Host(`n8n.tlta.online`)"
+      service: n8n-failover
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+
+  services:
+    # main backend
+    n8n:
+      loadBalancer:
+        servers:
+          - url: "http://192.168.1.68:31496"
+        passHostHeader: true
+        healthCheck:
+          path: "/"
+
+    # fallback static page
+    failover-default:
+      loadBalancer:
+        servers:
+          - url: "http://nginx-failover:80"
+        passHostHeader: true
+
+    # combine both with failover logic
+    n8n-failover:
+      failover:
+        service: n8n
+        fallback: failover-default

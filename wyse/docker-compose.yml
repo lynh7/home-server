@@ -1,0 +1,56 @@
+networks:
+  web:
+    driver: bridge
+
+services:
+  traefik:
+    image: traefik:v3.1
+    container_name: reverse-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"     # Router forwards external 80 → host 80 → container 80
+      - "443:443"   # Router forwards external 443 → host 443 → container 443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic:/etc/traefik/dynamic:ro
+      - ./traefik/letsencrypt:/letsencrypt
+    networks:
+      - web
+
+  nginx-failover:
+    image: nginx:alpine
+    container_name: nginx-failover
+    restart: unless-stopped
+    volumes:
+      - ./nginx:/usr/share/nginx/html:ro
+    networks:
+      - web
+
+  # pihole:
+  #   image: pihole/pihole:latest
+  #   container_name: pihole
+  #   hostname: pihole
+  #   restart: unless-stopped
+  #   environment:
+  #     TZ: "Asia/Ho_Chi_Minh"
+  #     WEBPASSWORD: "changeme"
+  #     DNSMASQ_LISTENING: "all"
+  #     PIHOLE_DNS_: "1.1.1.1;8.8.8.8"
+  #   volumes:
+  #     - ./pihole/etc-pihole:/etc/pihole
+  #     - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+  #   cap_add:
+  #     - NET_ADMIN
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.pihole.rule=Host(`pihole.tlta.online`)"
+  #     - "traefik.http.services.pihole.loadbalancer.server.port=80"
+  #     - "traefik.http.routers.pihole.entrypoints=websecure"
+  #     - "traefik.http.routers.pihole.tls.certresolver=letsencrypt"
+  #   networks:
+  #     - web
+  #     - dns
+  #   ports:
+  #     - "53:53/tcp"
+  #     - "53:53/udp"  # Needed for DNS resolution
