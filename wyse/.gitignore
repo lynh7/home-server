@@ -21,3 +21,9 @@
 volumes/
 data/
 *.db
+
+# Ignore etc-pihole directory, this is managed by Docker compose
+/pihole/etc-pihole
+
+# Ignore letsencrypt folder inside traefik folder
+/traefik/letsencrypt
