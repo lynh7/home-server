@@ -22,7 +22,7 @@ http:
     failover-default:
       loadBalancer:
         servers:
-          - url: "http://nginx-failover:80"
+          - url: "http://localhost:8081"
         passHostHeader: true
 
     # combine both with failover logic

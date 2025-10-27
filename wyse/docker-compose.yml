@@ -31,6 +31,8 @@ services:
     image: nginx:alpine
     container_name: nginx-failover
     restart: unless-stopped
+    ports:
+      - "8081:80"
     volumes:
       - ./nginx:/usr/share/nginx/html:ro
     networks:
@@ -46,7 +48,7 @@ services:
           ipv4_address: 192.168.1.98
       environment:
         TZ: "Asia/Ho_Chi_Minh"
-        WEBPASSWORD: '${PIHOLE_PASSWORD}'
+        WEBPASSWORD: ${PIHOLE_PASSWORD}
         DNSMASQ_LISTENING: "all"
         PIHOLE_DNS_: "1.1.1.1;8.8.8.8"
         ADLISTS_URL: 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt'
