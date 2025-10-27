@@ -2,14 +2,7 @@ networks:
   web:
     driver: bridge
   macvlan_net:
-    driver: macvlan
-    driver_opts:
-      parent: eth0  # <-- your host's network interface name
-    ipam:
-      config:
-        - subnet: 192.168.1.0/24
-          gateway: 192.168.1.1
-          ip_range: 192.168.1.96/29 # Optional small range for Docker (192.168.1.97–103)
+    external: true
 
 services:
   traefik:
@@ -46,14 +39,22 @@ services:
       networks:
         macvlan_net:
           ipv4_address: 192.168.1.98
+      ports:
+        # DNS Ports
+        - "53:53/tcp"
+        - "53:53/udp"
+        # Default HTTP Port
+        - "80:80/tcp"
+        # Default HTTPs Port. FTL will generate a self-signed certificate
+        - "443:443/tcp"
+        # Uncomment the below if using Pi-hole as your DHCP Server
+        - "67:67/udp"
       environment:
-        TZ: "Asia/Ho_Chi_Minh"
-        WEBPASSWORD: ${PIHOLE_PASSWORD}
+        TZ: "VN"
+        FTLCONF_webserver_api_password: ${PIHOLE_PASSWORD}
         DNSMASQ_LISTENING: "all"
-        PIHOLE_DNS_: "1.1.1.1;8.8.8.8"
-        ADLISTS_URL: 'https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt'
+        FTLCONF_dns_upstreams: "1.1.1.1;8.8.8.8"
       volumes:
         - ./pihole/etc-pihole:/etc/pihole
-        - ./pihole/etc-dnsmasq.d:/etc/dnsmasq.d
       cap_add:
         - NET_ADMIN

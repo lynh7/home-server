@@ -9,7 +9,7 @@ http:
         certResolver: letsencrypt
     n8n:
       rule: "Host(`n8n.tlta.online`)"
-      service: n8n-failover
+      service: n8n
       entryPoints:
         - websecure
       tls:
@@ -19,27 +19,30 @@ http:
     default:
       loadBalancer:
         servers:
-          - url: "http://localhost:8081"
-        passHostHeader: true
-        
-    # n8n routing
-    n8n:
-      loadBalancer:
-        servers:
-          - url: "http://192.168.1.68:31496"
-        passHostHeader: true
-        healthCheck:
-          path: "/"
-
-    # fallback static page
-    failover-default:
-      loadBalancer:
-        servers:
-          - url: "http://localhost:8081"
-        passHostHeader: true
+          - url: "http://172.19.0.1:8081"
 
     # combine both with failover logic
-    n8n-failover:
+    n8n:
       failover:
-        service: n8n
-        fallback: failover-default
+        healthCheck: {}
+        service: n8n-main
+        fallback: n8n-failover #Maintain a fallback to a maintenance page
+        
+    # n8n routing
+    n8n-main:
+      loadBalancer:
+        healthCheck:
+          path: "/"
+          timeout: "3s"
+        servers:
+          - url: "http://192.168.1.68:31496"
+
+    # fallback static page
+    n8n-failover:
+      loadBalancer:
+        healthCheck:
+          path: "/"
+          timeout: "3s"
+        servers:
+          - url: "http://172.19.0.1:8081"
+
