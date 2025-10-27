@@ -1,5 +1,12 @@
 http:
   routers:
+    root:
+      rule: "Host(`tlta.online`)"
+      service: default
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
     n8n:
       rule: "Host(`n8n.tlta.online`)"
       service: n8n-failover
@@ -9,7 +16,13 @@ http:
         certResolver: letsencrypt
 
   services:
-    # main backend
+    default:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:8081"
+        passHostHeader: true
+        
+    # n8n routing
     n8n:
       loadBalancer:
         servers:
