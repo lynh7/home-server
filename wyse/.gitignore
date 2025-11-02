@@ -6,6 +6,7 @@
 *.tmp
 *.bak
 *.swp
+*.talos
 
 # Ignore environment-specific files and secrets
 .env
