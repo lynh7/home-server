@@ -5,12 +5,12 @@ releases:
     values:
       - ./enviroments-config/staging.yaml
   
-  - name: monitoring-stack
-    namespace: monitoring
-    chart: ./apps/monitoring
-    values:
-      - apps/monitoring/values.yaml
+  # - name: monitoring-stack
+  #   namespace: monitoring
+  #   chart: ./apps/monitoring
+  #   values:
+  #     - apps/monitoring/values.yaml
   
-  - name: github-runner
-    namespace: github-actions
-    chart: ./github-actions/runner
+  # - name: github-runner
+  #   namespace: github-actions
+  #   chart: ./github-actions/runner
