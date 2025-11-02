@@ -1,1 +1,3 @@
 wyse
+proxmox/helm-charts/wordpress-stack/charts
+proxmox/helm-charts/wordpress-stack/Chart.lock
