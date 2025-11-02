@@ -1353,7 +1353,7 @@ volumePermissions:
   ## @param volumePermissions.image.pullSecrets Specify docker-registry secret names as an array
   ##
   image:
-    registry: docker.io
+    registry: public.ecr.aws
     repository: bitnami/os-shell
     tag: 12-debian-12-r50
     digest: ""
@@ -1398,7 +1398,7 @@ metrics:
   ## @param metrics.image.pullSecrets Specify docker-registry secret names as an array
   ##
   image:
-    registry: docker.io
+    registry: public.ecr.aws
     repository: bitnami/mysqld-exporter
     tag: 0.17.2-debian-12-r16
     digest: ""
