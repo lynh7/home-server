@@ -1,0 +1,15 @@
+apiVersion: v2
+name: wordpress-stack
+description: A Helm chart for WordPress stacks deployment
+type: application
+version: 0.1.0
+dependencies:
+  - name: mysql
+    version: 14.0.3
+    repository: ./dependencies/mysql
+  - name: redis
+    version: 21.0.0
+    repository: ./dependencies/redis
+  - name: wordpress
+    version: 24.2.3
+    repository: ./dependencies/wordpress
