@@ -1184,7 +1184,7 @@ sentinel:
   ## @param sentinel.image.debug Enable image debug mode
   ##
   image:
-    registry: docker.io
+    registry: public.ecr.aws
     repository: bitnami/redis-sentinel
     tag: 8.0.0-debian-12-r0
     digest: ""
@@ -1783,7 +1783,7 @@ metrics:
   ## @param metrics.image.pullSecrets Redis(R) Exporter image pull secrets
   ##
   image:
-    registry: docker.io
+    registry: public.ecr.aws
     repository: bitnami/redis-exporter
     tag: 1.71.0-debian-12-r0
     digest: ""
@@ -2155,7 +2155,7 @@ volumePermissions:
   ## @param volumePermissions.image.pullSecrets OS Shell + Utility image pull secrets
   ##
   image:
-    registry: docker.io
+    registry: public.ecr.aws
     repository: bitnami/os-shell
     tag: 12-debian-12-r43
     digest: ""
@@ -2219,7 +2219,7 @@ kubectl:
   ## @param kubectl.image.pullSecrets Kubectl pull secrets
   ##
   image:
-    registry: docker.io
+    registry: public.ecr.aws
     repository: bitnami/kubectl
     tag: 1.33.0-debian-12-r0
     digest: ""
@@ -2288,7 +2288,7 @@ sysctl:
   ## @param sysctl.image.pullSecrets OS Shell + Utility image pull secrets
   ##
   image:
-    registry: docker.io
+    registry: public.ecr.aws
     repository: bitnami/os-shell
     tag: 12-debian-12-r43
     digest: ""
