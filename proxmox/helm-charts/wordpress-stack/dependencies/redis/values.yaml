@@ -112,7 +112,7 @@ diagnosticMode:
 ## @param image.debug Enable image debug mode
 ##
 image:
-  registry: docker.io
+  registry: public.ecr.aws
   repository: bitnami/redis
   tag: 8.0.0-debian-12-r0
   digest: ""
