@@ -53,8 +53,12 @@ services:
         TZ: "VN"
         FTLCONF_webserver_api_password: ${PIHOLE_PASSWORD}
         DNSMASQ_LISTENING: "all"
-        FTLCONF_dns_upstreams: "1.1.1.1;8.8.8.8"
+        #FTLCONF_dns_upstreams: '1.1.1.1;1.0.0.1;2606:4700:4700::1111;2606:4700:4700::1001' #cloudflare DNS
+        FTLCONF_dns_upstreams: '9.9.9.9;149.112.112.112;2620:fe::fe;2620:fe::9' #Quad9 DNS
       volumes:
-        - ./pihole/etc-pihole:/etc/pihole
+        - pihole-data:/etc/pihole
       cap_add:
         - NET_ADMIN
+volumes:
+  pihole-data:
+    external: true # Use volume
