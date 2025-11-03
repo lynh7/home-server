@@ -27,4 +27,6 @@ data/
 /pihole/etc-pihole
 
 # Ignore letsencrypt folder inside traefik folder
-/traefik/letsencrypt
+/traefik/letsencrypt/acme.json
+/proxmox
+wyse/traefik/letsencrypt/acme.json
