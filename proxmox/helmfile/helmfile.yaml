@@ -5,11 +5,11 @@ releases:
     values:
       - ./enviroments-config/staging.yaml
   
-  # - name: monitoring-stack
-  #   namespace: monitoring
-  #   chart: ./apps/monitoring
-  #   values:
-  #     - apps/monitoring/values.yaml
+  - name: longhorn
+    namespace: longhorn-system
+    chart: ./helm-charts/longhorn
+    values:
+      - ./helm-charts/longhorn/values.yaml
   
   # - name: github-runner
   #   namespace: github-actions
