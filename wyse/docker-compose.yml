@@ -17,6 +17,7 @@ services:
       - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - ./traefik/letsencrypt:/letsencrypt
+      - traefik-data:/etc/traefik
     networks:
       - web
 
@@ -61,4 +62,6 @@ services:
         - NET_ADMIN
 volumes:
   pihole-data:
+    external: true # Use volume
+  traefik-data:
     external: true # Use volume
