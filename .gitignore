@@ -24,8 +24,7 @@ data/
 *.db
 
 # Ignore etc-pihole directory, this is managed by Docker compose
-/wyse/pihole/etc-pihole
-
+wyse/pihole
+wyse/traefik/letsencrypt/
 # Ignore letsencrypt folder inside traefik folder
-/proxmox
-/wyse/traefik/letsencrypt/acme.json
+proxmox
