@@ -44,5 +44,5 @@ http:
           path: "/"
           timeout: "3s"
         servers:
-          - url: "http://172.19.0.1:8081"
+          - url: "http://172.19.0.1:8081" #Default Nginx static page on Dcoker bridge network
 
