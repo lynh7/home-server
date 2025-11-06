@@ -10,6 +10,8 @@ networks:
 services:
   traefik:
     image: traefik:v3.1
+    mem_limit: 256m
+    cpus: 0.5
     container_name: reverse-proxy
     restart: unless-stopped
     ports:
@@ -23,9 +25,16 @@ services:
       - traefik-data:/etc/traefik
     networks:
       - web
-
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
   nginx-failover:
     image: nginx:alpine
+    mem_limit: 50m
+    cpus: 0.25
     container_name: nginx-failover
     restart: unless-stopped
     ports:
@@ -37,6 +46,8 @@ services:
 
   pihole:
       image: pihole/pihole:2025.07.1
+      mem_limit: 256m
+      cpus: 0.5
       container_name: pihole
       hostname: pihole
       restart: unless-stopped
@@ -63,6 +74,17 @@ services:
         - pihole-data:/etc/pihole
       cap_add:
         - NET_ADMIN
+      healthcheck:
+        test: ["CMD", "dig", "@127.0.0.1", "google.com"]
+        interval: 1m
+        timeout: 10s
+        retries: 3
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "10m"
+          max-file: "3"
+        
 volumes:
   pihole-data:
     external: true # Use volume
