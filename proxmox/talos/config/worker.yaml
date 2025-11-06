@@ -69,19 +69,18 @@ machine:
         #         - '!10.0.0.3/32'
         #         - fdc7::/16
     # Provides machine specific network configuration options.
-    network: {}
-    # # `interfaces` is used to define the network interface configuration.
-    # interfaces:
-    #     - interface: enp0s1 # The interface name.
-    #       # Assigns static IP addresses to the interface.
-    #       addresses:
-    #         - 192.168.2.0/24
-    #       # A list of routes associated with the interface.
-    #       routes:
-    #         - network: 0.0.0.0/0 # The route's network (destination).
-    #           gateway: 192.168.2.1 # The route's gateway (if empty, creates link scope route).
-    #           metric: 1024 # The optional metric for the route.
-    #       mtu: 1500 # The interface's MTU.
+    network:
+        interfaces:
+            - interface: enp0s1 # The interface name.
+            # Assigns static IP addresses to the interface.
+            addresses:
+                - 192.168.2.0/24
+            # A list of routes associated with the interface.
+            routes:
+                - network: 0.0.0.0/0 # The route's network (destination).
+                gateway: 192.168.2.1 # The route's gateway (if empty, creates link scope route).
+                metric: 1024 # The optional metric for the route.
+            mtu: 1500 # The interface's MTU.
     #       
     #       # # Picks a network device using the selector.
 
@@ -164,10 +163,9 @@ machine:
     #       # vip:
     #       #     ip: 172.16.199.55 # Specifies the IP address to be used.
 
-    # # Used to statically set the nameservers for the machine.
-    # nameservers:
-    #     - 8.8.8.8
-    #     - 1.1.1.1
+    # Used to statically set the nameservers for the machine.
+    nameservers:
+        - 192.168.1.98
 
     # # Used to statically set arbitrary search domains.
     # searchDomains:
@@ -302,13 +300,13 @@ machine:
 
     # # Used to configure the machine's time settings.
 
-    # # Example configuration for cloudflare ntp server.
-    # time:
-    #     disabled: false # Indicates if the time service is disabled for the machine.
-    #     # description: |
-    #     servers:
-    #         - time.cloudflare.com
-    #     bootTimeout: 2m0s # Specifies the timeout when the node time is considered to be in sync unlocking the boot sequence.
+    # Example configuration for cloudflare ntp server.
+    time:
+        disabled: false # Indicates if the time service is disabled for the machine.
+        # description: |
+        servers:
+            - time.cloudflare.com
+        bootTimeout: 2m0s # Specifies the timeout when the node time is considered to be in sync unlocking the boot sequence.
 
     # # Used to configure the machine's sysctls.
 
@@ -337,11 +335,14 @@ machine:
     #         - endpoint: tcp://1.2.3.4:12345 # Where to send logs. Supported protocols are "tcp" and "udp".
     #           format: json_lines # Logs format.
 
-    # # Configures the kernel.
-    # kernel:
-    #     # Kernel modules to load.
-    #     modules:
-    #         - name: brtfs # Module name.
+    # Configures the kernel.
+    kernel:
+        # Kernel modules to load.
+        modules:
+            - name: nbd
+            - name: iscsi_tcp
+            - name: iscsi_generic
+            - name: configfs
 
     # # Configures the seccomp profiles for the machine.
     # seccompProfiles:
