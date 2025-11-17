@@ -1,16 +1,31 @@
 releases:
-  - name: wordpress-stack
-    namespace: wordpress
-    chart: ./helm-charts/wordpress-stack
-    values:
-      - ./enviroments-config/staging.yaml
-  
+  # - name: wordpress-stack
+  #   namespace: wordpress
+  #   chart: ./helm-charts/wordpress-stack
+  #   values:
+  #     - ./enviroments-config/staging.yaml
+
+  #CSI storage drivers
   - name: longhorn
     namespace: longhorn-system
-    chart: ./helm-charts/longhorn
+    chart: ../helm-charts/longhorn
     values:
-      - ./helm-charts/longhorn/values.yaml
+      - ../helm-charts/longhorn/values.yaml
+
+  - name: networking-stack
+    namespace: networking
+    chart: ../helm-charts/networking-stack
+    values:
+      - ../helm-charts/networking-stack/values.yaml
   
-  # - name: github-runner
-  #   namespace: github-actions
+  # #CSI storage drivers
+  # - name: mayastor
+  #   namespace: openebs
+  #   chart: ../helm-charts/mayastor
+  #   values:
+  #     - ../helm-charts/mayastor/values.yaml
+
+  #Monitoring stack   
+  # - name: monitoring-stack
+  #   namespace: monitoring
   #   chart: ./github-actions/runner

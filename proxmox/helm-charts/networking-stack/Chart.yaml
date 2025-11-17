@@ -1,0 +1,12 @@
+apiVersion: v2
+name: networking-stack
+description: A Custom Metal LB
+type: application
+version: 0.1.0
+dependencies:
+  - name: metallb
+    version: 0.15.2
+    repository: file://./dependencies/metallb
+  - name: ingress-nginx
+    version: 4.14.0
+    repository: file://./dependencies/ingress-nginx
