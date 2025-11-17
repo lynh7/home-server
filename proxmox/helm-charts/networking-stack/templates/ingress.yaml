@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: longhorn-ui
-  namespace: networking
+  namespace: longhorn-system
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
