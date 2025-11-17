@@ -8,7 +8,7 @@ http:
       tls:
         certResolver: letsencrypt
     longhorn:
-      rule: "Host(`longhorn.tks.tlta.online`)"
+      rule: "Host(`longhorn.tks.networking.tlta.online`)"
       service: longhorn
       entryPoints:
         - websecure
@@ -35,7 +35,7 @@ http:
           path: "/"
           timeout: "3s"
         servers:
-          - url: "http://192.168.10.60:80" #Longhorn UI
+           - url: "longhorn.tks.tlta.online" #Longhorn UI
 
     # fallback static page
     longhorn-failover:
