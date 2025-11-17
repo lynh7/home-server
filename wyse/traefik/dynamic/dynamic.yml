@@ -7,9 +7,9 @@ http:
         - websecure
       tls:
         certResolver: letsencrypt
-    n8n:
-      rule: "Host(`n8n.tlta.online`)"
-      service: n8n
+    longhorn:
+      rule: "Host(`longhorn.tks.tlta.online`)"
+      service: longhorn
       entryPoints:
         - websecure
       tls:
@@ -22,23 +22,23 @@ http:
           - url: "http://172.20.0.1:8081"
 
     # combine both with failover logic
-    n8n:
+    longhorn:
       failover:
         healthCheck: {}
-        service: n8n-main
-        fallback: n8n-failover #Maintain a fallback to a maintenance page
+        service: longhorn-ui-service
+        fallback: longhorn-failover #Maintain a fallback to a maintenance page
         
-    # n8n routing
-    n8n-main:
+    # longhorn routing
+    longhorn-ui-service:
       loadBalancer:
         healthCheck:
           path: "/"
           timeout: "3s"
         servers:
-          - url: "http://192.168.1.68:31496"
+          - url: "http://192.168.10.60:80" #Longhorn UI
 
     # fallback static page
-    n8n-failover:
+    longhorn-failover:
       loadBalancer:
         healthCheck:
           path: "/"
