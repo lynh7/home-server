@@ -17,15 +17,10 @@ releases:
     chart: ../helm-charts/networking-stack
     values:
       - ../helm-charts/networking-stack/values.yaml
-  
-  # #CSI storage drivers
-  # - name: mayastor
-  #   namespace: openebs
-  #   chart: ../helm-charts/mayastor
-  #   values:
-  #     - ../helm-charts/mayastor/values.yaml
 
-  #Monitoring stack   
+  #Monitoring stack kube-prometheus-stack
   # - name: monitoring-stack
   #   namespace: monitoring
-  #   chart: ./github-actions/runner
+  #   chart: ../helm-charts/monitoring-stack
+  #   values:
+  #     - ../helm-charts/monitoring-stack/values.yaml
