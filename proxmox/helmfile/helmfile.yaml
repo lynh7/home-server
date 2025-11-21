@@ -1,9 +1,9 @@
 releases:
-  # - name: wordpress-stack
-  #   namespace: wordpress
-  #   chart: ./helm-charts/wordpress-stack
-  #   values:
-  #     - ./enviroments-config/staging.yaml
+  - name: wordpress-stack
+    namespace: wordpress-dev01
+    chart: ../helm-charts/wordpress-stack
+    values:
+      - ../helm-charts/wordpress-stack/values.yaml
 
   #CSI storage drivers
   - name: longhorn
@@ -17,6 +17,8 @@ releases:
     chart: ../helm-charts/networking-stack
     values:
       - ../helm-charts/networking-stack/values.yaml
+  
+  #External Secrets Operator (ESO)
 
   #Monitoring stack kube-prometheus-stack
   # - name: monitoring-stack
