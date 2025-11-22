@@ -7,9 +7,9 @@ http:
         - websecure
       tls:
         certResolver: letsencrypt
-    longhorn:
-      rule: "Host(`longhorn.tks.tlta.online`)"
-      service: longhorn
+    wordpress:
+      rule: "Host(`wp.tks-dev01.tlta.online`)"
+      service: wordpress
       entryPoints:
         - websecure
       tls:
@@ -22,24 +22,24 @@ http:
           - url: "http://172.20.0.1:8081"
 
     # combine both with failover logic
-    longhorn:
+    wordpress:
       failover:
         healthCheck: {}
-        service: longhorn-ui-service
-        fallback: longhorn-failover #Maintain a fallback to a maintenance page
+        service: wordpress-ui-service
+        fallback: wordpress-failover #Maintain a fallback to a maintenance page
         
-    # longhorn routing
-    longhorn-ui-service:
+    # wordpress routing
+    wordpress-ui-service:
       loadBalancer:
         passHostHeader: true
         healthCheck:
           path: "/"
           timeout: "3s"
         servers:
-           - url: "http://192.168.10.60"
+           - url: "http://192.168.10.40"
 
     # fallback static page
-    longhorn-failover:
+    wordpress-failover:
       loadBalancer:
         healthCheck:
           path: "/"
