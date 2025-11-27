@@ -27,32 +27,52 @@ repositories:
     url: https://prometheus-community.github.io/helm-charts
 
 helmDefaults:
-  verify: true
   skipSchemaValidation: false
   wait: true
-  timeout: 600s
+  timeout: 600
   waitForJobs: true
   historyMax: 10
   createNamespace: true
 
-releases:
+releases:     
   - name: wordpress-stack
     needs:
-      - longhorn
-      - networking-stack
+      - longhorn-system/longhorn
+      - networking/networking-stack
     namespace: wordpress-dev01
     chart: ../helm-charts/wordpress-stack
     values:
       - ../helm-charts/wordpress-stack/values.yaml
+      - ./values/mysql-secrets.yaml.gotmpl
+
+  #Monitoring stack (kube-prometheus)
+  # - name: monitoring-metric-stack
+  #   needs:
+  #     - networking/networking-stack
+  #   namespace: longhorn-system
+  #   chart: ../helm-charts/longhorn
+  #   values:
+  #     - ../helm-charts/longhorn/values.yaml
+
+  #Tools stack (pgamdin for mysql, redis-insight for redis, mc for minio)
+  # - name: monitoring-tools-stack
+  #   needs:
+  #     - networking/networking-stack
+  #   namespace: longhorn-system
+  #   chart: ../helm-charts/longhorn
+  #   values:
+  #     - ../helm-charts/longhorn/values.yaml
+
+  #could combine to 1 release later
 
   #CSI storage drivers
   - name: longhorn
     needs:
-      - networking-stack
+      - networking/networking-stack
     namespace: longhorn-system
     chart: ../helm-charts/longhorn
     values:
-      - ../helm-charts/longhorn/values.yaml
+      - ./values/longhorn-values.yaml
 
   - name: networking-stack #First rollout
     namespace: networking

@@ -1,13 +1,16 @@
 global:
+  imageRegistry: "public.ecr.aws"
   storageClass: longhorn
   security:
     allowInsecureImages: true
+
 mysql:
+  architecture: standalone
   auth:
-    rootPassword: "root"
+    createDatabase: true
     database: wordpress
     username: andy
-    password: andy
+    # existingSecret: wordpress-stack-secrets #Deloyed via 1st
 
   primary:
     persistence:
@@ -15,39 +18,36 @@ mysql:
       storageClass: longhorn
       size: 20Gi
 
+  metrics:
+    enabled: false # Will enable later
+
 redis:
   architecture: standalone
   auth:
     enabled: true
-    password: "redispassword"
   master:
     persistence:
       enabled: true
-  replica:
-    persistence:
-      enabled: true
+      storageClass: longhorn
+      accessMode: ["ReadWriteMany"]
+      size: 5Gi
 
 minio:
+  auth: {}
   mode: standalone
+  statefulset:
+    replicaCount: 2
   persistence:
     enabled: true
     storageClass: longhorn
-    size: 20Gi
-
-  rootUser: "minioadmin"
-  rootPassword: "minioadminpassword"
-
-  buckets:
-    - name: wp-media
-      policy: none
-      purge: false
-
-  service:
-    type: ClusterIP
-    port: 9000
+    size: 8Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: minio.tks-dev01.lab
 
 wordpress:
-  replicaCount: 2
+  replicaCount: 1
 
   wordpressUsername: admin
   wordpressPassword: admin123
@@ -70,8 +70,7 @@ wordpress:
     enabled: true
     storageClass: longhorn
     size: 5Gi
-    # Only persist wp-content (plugins, themes, uploads if not using S3)
-    existingClaim: ""
+    accessMode: ["ReadWriteMany"]
 
   # Enable Redis for caching/sessions
   redis:
@@ -150,5 +149,5 @@ wordpress:
 
   ingress:
     enabled: true
-    hostname: wp.tks-dev01.lab
+    hostname: wp.tks-dev01.tlta.online
     ingressClassName: nginx

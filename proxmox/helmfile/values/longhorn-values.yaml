@@ -1,0 +1,4 @@
+ingress:
+  enabled: enable
+  ingressClassName: nginx
+  host: longhorn.tks-cluster.lab
