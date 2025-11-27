@@ -43,7 +43,7 @@ releases:
     chart: ../helm-charts/wordpress-stack
     values:
       - ../helm-charts/wordpress-stack/values.yaml
-      - ./values/mysql-secrets.yaml.gotmpl
+      - ./values/wordpress-stack-secrets.yaml.gotmpl
 
   #Monitoring stack (kube-prometheus)
   # - name: monitoring-metric-stack
