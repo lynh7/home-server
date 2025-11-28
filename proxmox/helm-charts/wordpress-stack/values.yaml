@@ -49,21 +49,14 @@ minio:
 wordpress:
   replicaCount: 1
 
-  wordpressUsername: admin
-  wordpressPassword: admin123
-  wordpressEmail: admin@example.com
-  wordpressBlogName: "My Blog"
+  # wordpressUsername: admin
+  # wordpressPassword: admin123
+  wordpressEmail: hoang.tlta17@gmail.com
+  wordpressBlogName: "hiroschem"
+  wordpressPlugins: all
 
-  # Connect to MySQL
-  externalDatabase:
-    host: wordpress-stack-mysql
-    user: andy
-    password: andy
-    database: wordpress
-    port: 3306
-  
-  mariadb:
-    enabled: false  # Disable built-in MariaDB
+  initContainers: []
+  resources: {}
 
   # Disable persistence to make it stateless
   persistence:
@@ -72,78 +65,63 @@ wordpress:
     size: 5Gi
     accessMode: ["ReadWriteMany"]
 
-  # Enable Redis for caching/sessions
-  redis:
-    enabled: true
-    host: wordpress-stack-redis-master
-    port: 6379
-    password: "redispassword"
+  mariadb:
+    enabled: false  # Disable built-in MariaDB
 
+  # Connect to MySQL
+  externalDatabase:
+    database: wordpress
+
+  wordpressConfigureCache: true
   memcached:
     enabled: false
   
-  # Install required plugins
-  extraVolumes:
-    - name: plugin-installer
-      emptyDir: {}
-  
-  extraVolumeMounts:
-    - name: plugin-installer
-      mountPath: /tmp/plugins
-  
-    # Use lifecycle hook to install plugins after container starts
-  lifecycleHooks:
-    postStart:
-      exec:
-        command:
-          - /bin/bash
-          - -c
-          - |
-            # Wait for WordPress to be ready
-            sleep 30
-            # Install Redis plugin
-            wp plugin install redis-cache --activate --allow-root || true
-            # Install S3 plugin
-            wp plugin install amazon-s3-and-cloudfront --activate --allow-root || true
-            # Enable Redis
-            wp redis enable --allow-root || true
+  externalCache::
+    host: wordpress-stack-redis-master.wordpress-dev01.svc.cluster.local
+    port: 6379
 
-  # Environment vars for S3 integration (MinIO)
   extraEnvVars:
+    
+    - name: MINIO_ROOT_USER
+      valueFrom:
+        secretKeyRef:
+          name: wordpress-stack-minio
+          key: root-user
+    - name: MINIO_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: wordpress-stack-minio
+          key: root-password
+    
+    # Pull Redis password from separate secret
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: wordpress-stack-redis
+          key: redis-password
+    
+    # WordPress configuration
     - name: WORDPRESS_CONFIG_EXTRA
       value: |
-        define( 'WP_REDIS_HOST', 'wordpress-stack-redis-master' );
-        define( 'WP_REDIS_PORT', '6379' );
-        define( 'WP_REDIS_PASSWORD', 'redispassword' );  # Add this
-        define( 'WP_REDIS_DATABASE', '0' );
-
-        define( 'AS3CF_SETTINGS', serialize( array(
-          'provider' => 'aws',
-          'access-key-id' => 'minioadmin',
-          'secret-access-key' => 'minioadminpassword',
-          'bucket' => 'wp-media',
-          'region' => 'us-east-1',
-          'copy-to-s3' => true,
-          'serve-from-s3' => true,
-          'force-https' => false,
-          'use-server-roles' => false,
-          'endpoint' => 'http://wordpress-stack-minio.wordpress-dev01.svc.cluster.local:9000',
-          'use-path-style-endpoints' => true,
-        ) ) );
-  
-  # initContainers:
-  #   - name: install-plugins
-  #     image: wordpress:cli
-  #     command:
-  #       - /bin/sh
-  #       - -c
-  #       - |
-  #         wp plugin install redis-cache --activate --allow-root
-  #         wp plugin install amazon-s3-and-cloudfront --activate --allow-root
-  #     volumeMounts:
-  #       - name: wordpress-data
-  #         mountPath: /var/www/html
-
+        // MinIO S3 Configuration
+        define('AS3CF_SETTINGS', serialize(array(
+            'provider' => 'aws',
+            'access-key-id' => getenv('MINIO_ROOT_USER'),
+            'secret-access-key' => getenv('MINIO_ROOT_PASSWORD'),
+        )));
+        define('AS3CF_AWS_USE_EC2_IAM_ROLE', false);
+        define('AS3CF_AWS_S3_BUCKET', 'wordpress-media');
+        define('AS3CF_AWS_S3_REGION', 'us-east-1');
+        define('AS3CF_AWS_S3_ENDPOINT', 'http://minio-service:9000');
+        define('AS3CF_AWS_S3_USE_PATH_STYLE_ENDPOINT', true);
+        
+        // Redis Configuration
+        define('WP_REDIS_HOST', 'redis-service');
+        define('WP_REDIS_PORT', 6379);
+        define('WP_REDIS_PASSWORD', getenv('REDIS_PASSWORD'));
+        define('WP_REDIS_DATABASE', 0);
+        define('WP_CACHE_KEY_SALT', 'wordpress_');
+        define('WP_REDIS_CLIENT', 'phpredis');
   service:
     type: ClusterIP
 

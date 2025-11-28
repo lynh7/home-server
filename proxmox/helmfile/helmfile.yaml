@@ -80,11 +80,11 @@ releases:
     values:
       - ../helm-charts/networking-stack/values.yaml
   
-  #External Secrets Operator (ESO)
-
-  #Monitoring stack kube-prometheus-stack
-  # - name: monitoring-stack
-  #   namespace: monitoring
-  #   chart: ../helm-charts/monitoring-stack
+  # Certmanager for TLS certs
+  # - name: cert-manager
+  #   needs:
+  #     - networking/networking-stack
+  #   namespace: cert-manager
+  #   chart: ../helm-charts/cert-manager
   #   values:
-  #     - ../helm-charts/monitoring-stack/values.yaml
+  #     - ../helm-charts/cert-manager/values.yaml
