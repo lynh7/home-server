@@ -23,18 +23,19 @@ http:
 
     # combine both with failover logic
     wordpress:
-      failover:
-        healthCheck: {}
-        service: wordpress-ui-service
-        fallback: wordpress-failover #Maintain a fallback to a maintenance page
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://192.168.10.40"      
+
+#failover:
+       # service: wordpress-ui-service
+        #fallback: wordpress-failover #Maintain a fallback to a maintenance page
         
     # wordpress routing
     wordpress-ui-service:
       loadBalancer:
         passHostHeader: true
-        healthCheck:
-          path: "/"
-          timeout: "3s"
         servers:
            - url: "http://192.168.10.40"
 
