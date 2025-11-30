@@ -49,19 +49,20 @@ releases:
   # - name: monitoring-metric-stack
   #   needs:
   #     - networking/networking-stack
-  #   namespace: longhorn-system
-  #   chart: ../helm-charts/longhorn
+  #   namespace: monitoring
+  #   chart: ../helm-charts/monitoring-stack/monitoring-metric-stack
   #   values:
-  #     - ../helm-charts/longhorn/values.yaml
+  #     - ../helm-charts/monitoring-stack/monitoring-metric-stack/values.yaml
 
-  #Tools stack (pgamdin for mysql, redis-insight for redis, mc for minio)
+  #Tools stack (adminer for mysql, redis-insight for redis, mc for minio)
   # - name: monitoring-tools-stack
   #   needs:
   #     - networking/networking-stack
-  #   namespace: longhorn-system
-  #   chart: ../helm-charts/longhorn
+  #   namespace: monitoring
+  #   chart: ../helm-charts/monitoring-stack/monitoring-tools-stack
   #   values:
-  #     - ../helm-charts/longhorn/values.yaml
+  #     - ../helm-charts/monitoring-stack/monitoring-tools-stack/values.yaml
+  # https://artifacthub.io/packages/helm/ectobit/adminer
 
   #could combine to 1 release later
 

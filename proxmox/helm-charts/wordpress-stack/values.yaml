@@ -52,8 +52,12 @@ wordpress:
   # wordpressUsername: admin
   # wordpressPassword: admin123
   wordpressEmail: hoang.tlta17@gmail.com
+  wordpressFirstName: tlta
+  wordpressLastName: Hoang
   wordpressBlogName: "hiroschem"
+  wordpressScheme: https
   wordpressPlugins: all
+  allowEmptyPassword: false
 
   initContainers: []
   resources: {}
@@ -77,11 +81,42 @@ wordpress:
     enabled: false
   
   externalCache::
-    host: wordpress-stack-redis-master.wordpress-dev01.svc.cluster.local
+    host: wordpress-stack-redis-master
     port: 6379
 
-  extraEnvVars:
-    
+  wordpressSkipInstall: true
+  # wordpressExtraConfigContent: |
+  #       # define('WP_REDIS_HOST', 'redis-service');
+  #       # define('WP_REDIS_PORT', 6379);
+  #       # define('WP_REDIS_PASSWORD', getenv('REDIS_PASSWORD'));
+  #       # define('WP_REDIS_DATABASE', 0);
+  #       # define('WP_CACHE_KEY_SALT', 'wordpress_');
+  #       # define('WP_REDIS_CLIENT', 'phpredis');
+
+  #       # define('AS3CF_SETTINGS', serialize(array(
+  #       #   'provider' => 'aws',
+  #       #   'access-key-id' => getenv('MINIO_ROOT_USER'),
+  #       #   'secret-access-key' => getenv('MINIO_ROOT_PASSWORD'),
+  #       #   )));
+  #       # define('AS3CF_AWS_USE_EC2_IAM_ROLE', false);
+  #       # define('AS3CF_AWS_S3_BUCKET', 'wordpress-media');
+  #       # define('AS3CF_AWS_S3_REGION', 'us-east-1');
+  #       # define('AS3CF_AWS_S3_ENDPOINT', 'http://minio-service:9000');
+  #       # define('AS3CF_AWS_S3_USE_PATH_STYLE_ENDPOINT', true);
+
+  #       # if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+  #       #     $_SERVER['HTTPS'] = 'on';
+  #       # }
+  #       # define('FORCE_SSL_ADMIN', true);
+  #   define('WP_HOME','https://wp.tks-dev01.tlta.online');
+  #   define('WP_SITEURL','https://wp.tks-dev01.tlta.online');
+  
+  # wordpressExtraConfigContent: |                                                                                                                                                        
+  #   $_SERVER["HTTPS"] = "on";
+
+  wordpressConfiguration: ""
+
+  extraEnvVars:  
     - name: MINIO_ROOT_USER
       valueFrom:
         secretKeyRef:
@@ -99,31 +134,41 @@ wordpress:
         secretKeyRef:
           name: wordpress-stack-redis
           key: redis-password
-    
-    # WordPress configuration
-    - name: WORDPRESS_CONFIG_EXTRA
-      value: |
-        // MinIO S3 Configuration
-        define('AS3CF_SETTINGS', serialize(array(
-            'provider' => 'aws',
-            'access-key-id' => getenv('MINIO_ROOT_USER'),
-            'secret-access-key' => getenv('MINIO_ROOT_PASSWORD'),
-        )));
-        define('AS3CF_AWS_USE_EC2_IAM_ROLE', false);
-        define('AS3CF_AWS_S3_BUCKET', 'wordpress-media');
-        define('AS3CF_AWS_S3_REGION', 'us-east-1');
-        define('AS3CF_AWS_S3_ENDPOINT', 'http://minio-service:9000');
-        define('AS3CF_AWS_S3_USE_PATH_STYLE_ENDPOINT', true);
-        
-        // Redis Configuration
-        define('WP_REDIS_HOST', 'redis-service');
-        define('WP_REDIS_PORT', 6379);
-        define('WP_REDIS_PASSWORD', getenv('REDIS_PASSWORD'));
-        define('WP_REDIS_DATABASE', 0);
-        define('WP_CACHE_KEY_SALT', 'wordpress_');
-        define('WP_REDIS_CLIENT', 'phpredis');
+  
+  extraVolumes: 
+    - name: wp-config
+      configMap:
+        name: wordpress-wp-config-php-init
+
+  extraVolumesMounts: 
+    - name: wp-config
+      mountPath: /opt/bitnami/wordpress/wp-config.php
+
   service:
     type: ClusterIP
+  
+  # podSecurityContext:
+  #   enabled: true
+  #   fsGroupChangePolicy: Always
+  #   sysctls: []
+  #   supplementalGroups: []
+  #   fsGroup: 0   # allow file access as root
+
+
+  # containerSecurityContext:
+  #   enabled: true
+  #   seLinuxOptions: {}
+  #   runAsUser: 0
+  #   runAsGroup: 0
+  #   runAsNonRoot: false   # IMPORTANT
+  #   privileged: false     # keep privileged off unless you really need it
+  #   readOnlyRootFilesystem: false  # must be false if you want root to write
+  #   allowPrivilegeEscalation: true  # root must be able to escalate
+  #   capabilities:
+  #     drop: []   # remove drop ALL, or root won't be able to do anything
+  #   seccompProfile:
+  #     type: "RuntimeDefault"
+
 
   ingress:
     enabled: true
