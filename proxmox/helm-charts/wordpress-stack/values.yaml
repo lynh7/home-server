@@ -174,3 +174,6 @@ wordpress:
     enabled: true
     hostname: wp.tks-dev01.tlta.online
     ingressClassName: nginx
+    annotations: 
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
