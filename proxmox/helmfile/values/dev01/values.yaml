@@ -47,7 +47,6 @@ wordpress:
   wordpressFirstName: tlta
   wordpressLastName: Hoang
   wordpressBlogName: "hiroschem"
-  wordpressScheme: https
   wordpressPlugins: all
   allowEmptyPassword: false
 
@@ -58,7 +57,7 @@ wordpress:
   persistence:
     enabled: true
     storageClass: longhorn
-    size: 5Gi
+    size: 2Gi
     accessMode: ["ReadWriteMany"]
 
   mariadb:

@@ -47,7 +47,6 @@ wordpress:
   wordpressFirstName: tlta
   wordpressLastName: Hoang
   wordpressBlogName: "hiroschem"
-  wordpressScheme: https
   wordpressPlugins: all
   allowEmptyPassword: false
 
