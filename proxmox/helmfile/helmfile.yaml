@@ -42,7 +42,17 @@ releases:
     namespace: wordpress-dev01
     chart: ../helm-charts/wordpress-stack
     values:
-      - ../helm-charts/wordpress-stack/values.yaml
+      - ./values/dev01/values.yaml
+      - ./values/wordpress-stack-secrets.yaml.gotmpl
+  
+  - name: wordpress-stack
+    needs:
+      - longhorn-system/longhorn
+      - networking/networking-stack
+    namespace: wordpress-prod01
+    chart: ../helm-charts/wordpress-stack
+    values:
+      - ./values/prod01/values.yaml
       - ./values/wordpress-stack-secrets.yaml.gotmpl
 
   #Monitoring stack (kube-prometheus)

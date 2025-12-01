@@ -1,0 +1,91 @@
+mysql:
+
+  primary:
+    persistence:
+      size: 20Gi #default 20Gi
+
+  metrics:
+    enabled: false # Will enable later
+
+redis:
+  master:
+    persistence:
+      size: 5Gi
+
+minio:
+  persistence:
+    size: 8Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: minio.tks-prod01.lab
+
+wordpress:
+  replicaCount: 1
+
+  # wordpressUsername: admin
+  # wordpressPassword: admin123
+  wordpressEmail: hoang.tlta17@gmail.com
+  wordpressFirstName: tlta
+  wordpressLastName: Hoang
+  wordpressBlogName: "hiroschem"
+  wordpressScheme: https
+  wordpressPlugins: all
+  allowEmptyPassword: false
+
+  initContainers: []
+  resources: {}
+
+  # Disable persistence to make it stateless
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    size: 5Gi
+    accessMode: ["ReadWriteMany"]
+
+  mariadb:
+    enabled: false  # Disable built-in MariaDB
+
+  # Connect to MySQL
+  externalDatabase:
+    database: wordpress
+
+  wordpressConfigureCache: true
+  memcached:
+    enabled: false
+  
+  externalCache::
+    host: wordpress-stack-redis-master
+    port: 6379
+
+  wordpressSkipInstall: false
+
+  extraEnvVars:  
+    - name: MINIO_ROOT_USER
+      valueFrom:
+        secretKeyRef:
+          name: wordpress-stack-minio
+          key: root-user
+    - name: MINIO_ROOT_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: wordpress-stack-minio
+          key: root-password
+    
+    # Pull Redis password from separate secret
+    - name: REDIS_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: wordpress-stack-redis
+          key: redis-password
+
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: true
+    hostname: wp.tlta.online
+    ingressClassName: nginx
+    annotations: 
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+      nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
