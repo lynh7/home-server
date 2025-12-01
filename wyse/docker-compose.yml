@@ -30,6 +30,46 @@ services:
       options:
         max-size: "2m"
         max-file: "5"
+    command:
+      # EntryPoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.tls=true"
+
+      # Attach the static configuration tls.yaml file that contains the tls configuration settings
+      # - "--providers.file.filename=/dynamic/tls.yaml"
+
+      # Providers 
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
+      - "--providers.file.directory=/etc/traefik/dynamic/e"
+
+        # ... other command arguments ...
+      - "--certificatesresolvers.le.acme.email=hoang.tlta17@gmail.com"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json" # Path inside container volume
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+
+      # API & Dashboard 
+      - "--api.dashboard=false"
+      - "--api.insecure=false"
+
+      # Observability 
+      - "--log.level=INFO"
+      - "--accesslog=true"
+      - "--metrics.prometheus=false"
+
+  # Traefik Dynamic configuration via Docker labels
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wordpress-route.rule=Host(`wp.tks-dev01.tlta.online`)"
+      - "traefik.http.routers.wordpress-route.entrypoints=websecure"
+      - "traefik.http.routers.wordpress-route.tls=true"
+      - "traefik.http.services.wordpress-route.loadbalancer.server.url=http://192.168.10.40"
+
     
   nginx-failover:
     image: nginx:alpine
@@ -37,6 +77,11 @@ services:
     cpus: 0.25
     container_name: nginx-failover
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.nginx-failover.rule=Host(`tlta.online`)"
+      - "traefik.http.routers.nginx-failover.entrypoints=websecure"
+      - "traefik.http.routers.nginx-failover.tls=true"
     ports:
       - "8081:80"
     volumes:
