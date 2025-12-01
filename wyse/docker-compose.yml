@@ -66,10 +66,22 @@ services:
     labels:
       - "traefik.enable=true"
       ################################################################################
-      ############### WORDPRESS SITE ROUTE ################
+      ############### WORDPRESS SITE ROUTE DEV01   ###################################
       ################################################################################
-      # Router
+      # Router 
       - "traefik.http.routers.wordpress-route.rule=Host(`wp.tks-dev01.tlta.online`)"
+      - "traefik.http.routers.wordpress-route.entrypoints=websecure"
+      - "traefik.http.routers.wordpress-route.tls=true"
+
+        # Service forwarding to your WordPress node
+      - "traefik.http.services.wordpress-route.loadbalancer.server.url=http://192.168.10.40"
+      
+      ################################################################################
+      ############### WORDPRESS SITE ROUTE DEV01  ####################################
+      ################################################################################
+      
+      # Router
+      - "traefik.http.routers.wordpress-route.rule=Host(`wp.tlta.online`)"
       - "traefik.http.routers.wordpress-route.entrypoints=websecure"
       - "traefik.http.routers.wordpress-route.tls=true"
 
