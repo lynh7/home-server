@@ -45,7 +45,7 @@ services:
       # Providers 
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=proxy"
+      - "--providers.docker.network=web"
       - "--providers.file.directory=/etc/traefik/dynamic/e"
 
         # ... other command arguments ...
@@ -65,10 +65,24 @@ services:
   # Traefik Dynamic configuration via Docker labels
     labels:
       - "traefik.enable=true"
+      ################################################################################
+      ############### WORDPRESS SITE ROUTE ################
+      ################################################################################
+      # Router
       - "traefik.http.routers.wordpress-route.rule=Host(`wp.tks-dev01.tlta.online`)"
       - "traefik.http.routers.wordpress-route.entrypoints=websecure"
       - "traefik.http.routers.wordpress-route.tls=true"
+
+        # Service forwarding to your WordPress node
       - "traefik.http.services.wordpress-route.loadbalancer.server.url=http://192.168.10.40"
+
+      # ---------- MIDDLEWARES ----------
+      - "traefik.http.middlewares.wordpress-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.wordpress-headers.headers.customrequestheaders.X-Forwarded-Host=wp.tks-dev01.tlta.online"
+      - "traefik.http.middlewares.wordpress-headers.headers.customrequestheaders.X-Forwarded-Port=443"
+
+      # Attach middleware to router
+      - "traefik.http.routers.wordpress-route.middlewares=wordpress-headers"
 
     
   nginx-failover:
