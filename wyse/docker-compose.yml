@@ -19,8 +19,6 @@ services:
       - "443:443"   # Router forwards external 443 → host 443 → container 443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./traefik/dynamic:/etc/traefik/dynamic:ro
       - ./traefik/letsencrypt:/letsencrypt
       - traefik-data:/etc/traefik
     networks:
@@ -31,72 +29,88 @@ services:
         max-size: "2m"
         max-file: "5"
     command:
-      # EntryPoints
+      # EntryPoints - SIMPLIFIED WITHOUT GLOBAL REDIRECT
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
-
-      # Attach the static configuration tls.yaml file that contains the tls configuration settings
-      # - "--providers.file.filename=/dynamic/tls.yaml"
-
+      
       # Providers 
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=web"
-      - "--providers.file.directory=/etc/traefik/dynamic/e"
-
-        # ... other command arguments ...
+      - "--providers.docker.network=wyse_web"
+      
+      # Let's Encrypt
       - "--certificatesresolvers.le.acme.email=hoang.tlta17@gmail.com"
-      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json" # Path inside container volume
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
       - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-
+      
       # API & Dashboard 
       - "--api.dashboard=false"
       - "--api.insecure=false"
-
+      
       # Observability 
-      - "--log.level=INFO"
+      - "--log.level=DEBUG"
       - "--accesslog=true"
-      - "--metrics.prometheus=false"
 
-  # Traefik Dynamic configuration via Docker labels
     labels:
       - "traefik.enable=true"
-      ################################################################################
-      ############### WORDPRESS SITE ROUTE DEV01   ###################################
-      ################################################################################
-      # Router 
-      - "traefik.http.routers.wordpress-route.rule=Host(`wp.tks-dev01.tlta.online`)"
-      - "traefik.http.routers.wordpress-route.entrypoints=websecure"
-      - "traefik.http.routers.wordpress-route.tls=true"
-
-        # Service forwarding to your WordPress node
-      - "traefik.http.services.wordpress-route.loadbalancer.server.url=http://192.168.10.40"
       
       ################################################################################
-      ############### WORDPRESS SITE ROUTE DEV01  ####################################
+      # WORDPRESS DEV01 - HTTP (for redirect)
       ################################################################################
+      - "traefik.http.routers.wordpress-dev01-http.rule=Host(`wp.tks-dev01.tlta.online`)"
+      - "traefik.http.routers.wordpress-dev01-http.entrypoints=web"
+      - "traefik.http.routers.wordpress-dev01-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.wordpress-dev01-http.service=wordpress-dev01-service"
       
-      # Router
-      - "traefik.http.routers.wordpress-route.rule=Host(`wp.tlta.online`)"
-      - "traefik.http.routers.wordpress-route.entrypoints=websecure"
-      - "traefik.http.routers.wordpress-route.tls=true"
-
-        # Service forwarding to your WordPress node
-      - "traefik.http.services.wordpress-route.loadbalancer.server.url=http://192.168.10.40"
-
-      # ---------- MIDDLEWARES ----------
+      ################################################################################
+      # WORDPRESS DEV01 - HTTPS
+      ################################################################################
+      - "traefik.http.routers.wordpress-dev01-https.rule=Host(`wp.tks-dev01.tlta.online`)"
+      - "traefik.http.routers.wordpress-dev01-https.entrypoints=websecure"
+      - "traefik.http.routers.wordpress-dev01-https.tls=true"
+      - "traefik.http.routers.wordpress-dev01-https.tls.certresolver=le"
+      - "traefik.http.routers.wordpress-dev01-https.service=wordpress-dev01-service"
+      
+      # Service
+      - "traefik.http.services.wordpress-dev01-service.loadbalancer.server.url=http://192.168.10.40"
+      
+      # Forward headers to tell backend it's already HTTPS
+      - "traefik.http.routers.wordpress-dev01-https.middlewares=wordpress-headers"
+      
+      ################################################################################
+      # WORDPRESS PRODUCTION - HTTP (for redirect)
+      ################################################################################
+      - "traefik.http.routers.wordpress-prod-http.rule=Host(`wp.tlta.online`)"
+      - "traefik.http.routers.wordpress-prod-http.entrypoints=web"
+      - "traefik.http.routers.wordpress-prod-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.wordpress-prod-http.service=wordpress-prod-service"
+      
+      ################################################################################
+      # WORDPRESS PRODUCTION - HTTPS
+      ################################################################################
+      - "traefik.http.routers.wordpress-prod-https.rule=Host(`wp.tlta.online`)"
+      - "traefik.http.routers.wordpress-prod-https.entrypoints=websecure"
+      - "traefik.http.routers.wordpress-prod-https.tls=true"
+      - "traefik.http.routers.wordpress-prod-https.tls.certresolver=le"
+      - "traefik.http.routers.wordpress-prod-https.service=wordpress-prod-service"
+      
+      # Service
+      - "traefik.http.services.wordpress-prod-service.loadbalancer.server.url=http://192.168.10.40"
+      
+      # Forward headers to tell backend it's already HTTPS
+      - "traefik.http.routers.wordpress-prod-https.middlewares=wordpress-headers"
+      
+      ################################################################################
+      # MIDDLEWARE - Forward HTTPS headers
+      ################################################################################
       - "traefik.http.middlewares.wordpress-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.wordpress-headers.headers.customrequestheaders.X-Forwarded-Host=wp.tks-dev01.tlta.online"
       - "traefik.http.middlewares.wordpress-headers.headers.customrequestheaders.X-Forwarded-Port=443"
-
-      # Attach middleware to router
-      - "traefik.http.routers.wordpress-route.middlewares=wordpress-headers"
-
-    
+      
+      ################################################################################
+      # MIDDLEWARE - HTTPS Redirect
+      ################################################################################
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
   nginx-failover:
     image: nginx:alpine
     mem_limit: 50m
@@ -160,4 +174,4 @@ volumes:
   pihole-data:
     external: true # Use volume
   traefik-data:
-    external: true # Use volume
+    external: false # Use volume
