@@ -75,7 +75,7 @@ wordpress:
     host: wordpress-stack-redis-master
     port: 6379
 
-  wordpressSkipInstall: true
+  wordpressSkipInstall: false
   # wordpressExtraConfigContent: |
   #       # define('WP_REDIS_HOST', 'redis-service');
   #       # define('WP_REDIS_PORT', 6379);
