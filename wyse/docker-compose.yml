@@ -65,7 +65,8 @@ services:
       - "traefik.http.routers.wordpress-dev01-https.service=wordpress-dev01-https"
       
       # Service
-      - "traefik.http.services.wordpress-dev01-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.wordpress-dev01-https.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.wordpress-dev01-https.loadbalancer.server.url=http://192.168.10.40/"
 
       
       ################################################################################
@@ -78,7 +79,8 @@ services:
       - "traefik.http.routers.wordpress-prod-https.service=wordpress-prod-https"
       
       # Service
-      - "traefik.http.services.wordpress-prod-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.wordpress-prod-https.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.wordpress-prod-https.loadbalancer.server.url=http://192.168.10.40/"
 
       ################################################################################
       # LONGHORN STORAGE - HTTPS
@@ -90,7 +92,8 @@ services:
       - "traefik.http.routers.longhorn.service=longhorn"
       
       # Service
-      - "traefik.http.services.longhorn.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.longhorn.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.longhorn.loadbalancer.server.url=http://192.168.10.40/"
 
   nginx-failover:
     image: nginx:alpine
@@ -152,7 +155,7 @@ services:
   #         max-file: "3"
         
 volumes:
-  pihole-data:
-    external: true # Use volume
+  # pihole-data:
+  #   external: true # Use volume
   traefik-data:
-    external: false # Use volume
+    name: traefik-data
