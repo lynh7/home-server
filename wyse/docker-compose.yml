@@ -29,83 +29,43 @@ services:
         max-size: "2m"
         max-file: "5"
     command:
-      # EntryPoints - SIMPLIFIED WITHOUT GLOBAL REDIRECT
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
-      - "--entrypoints.websecure.address=:443"
-      
-      # Providers 
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      
-      # Let's Encrypt
-      - "--certificatesresolvers.letsencrypt.acme.email=hoang.tlta17@gmail.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      
-      # API & Dashboard 
-      - "--api.dashboard=false"
-      - "--api.insecure=false"
-      
-      # Observability 
-      - "--log.level=INFO"
+      - "--providers.docker.network=proxy"
+      - "--entryPoints.web.address=:80"
 
     labels:
       - "traefik.enable=true"
       
       ################################################################################
-      # WORDPRESS DEV01 - HTTPS
+      # HTTP CONFIGURATION
       ################################################################################
-      - "traefik.http.routers.wordpress-dev01-https.rule=Host(`wp.tks-dev01.tlta.online`)"
-      - "traefik.http.routers.wordpress-dev01-https.entrypoints=websecure"
-      - "traefik.http.routers.wordpress-dev01-https.tls=true"
-      - "traefik.http.routers.wordpress-dev01-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.wordpress-dev01-https.service=wordpress-dev01-https"
-      
-      # Service
-      - "traefik.http.services.wordpress-dev01-https.loadBalancer.passHostHeader=true"
-      - "traefik.http.services.wordpress-dev01-https.loadBalancer.servers[0].url=http://192.168.10.40/"
-      
-      ################################################################################
-      # WORDPRESS PRODUCTION - HTTPS
-      ################################################################################
-      - "traefik.http.routers.wordpress-prod-https.rule=Host(`wp.tlta.online`)"
-      - "traefik.http.routers.wordpress-prod-https.entrypoints=websecure"
-      - "traefik.http.routers.wordpress-prod-https.tls=true"
-      - "traefik.http.routers.wordpress-prod-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.wordpress-prod-https.service=wordpress-prod-https"
-      
-      # Service
-      - "traefik.http.services.wordpress-prod-https.loadBalancer.passHostHeader=true"
-      - "traefik.http.services.wordpress-prod-https.loadBalancer.servers[0].url=http://192.168.10.40/"
+      - "traefik.http.routers.wordpress-dev01-http.rule=Host(`wp.tks-dev01.tlta.online`)"
+      - "traefik.http.routers.wordpress-dev01-http.entrypoints=web"
+      - "traefik.http.routers.wordpress-dev01-http.service=wordpress-dev01-http"
 
-      ################################################################################
-      # LONGHORN STORAGE - HTTPS
-      ################################################################################
-      - "traefik.http.routers.longhorn.rule=Host(`longhorn.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.longhorn.entrypoints=websecure"
-      - "traefik.http.routers.longhorn.tls=true"
-      - "traefik.http.routers.longhorn.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.longhorn.service=longhorn"
+      - "traefik.http.routers.wordpress-prod01-http.rule=Host(`wp.tlta.online`)"
+      - "traefik.http.routers.wordpress-prod01-http.entrypoints=web"
+      - "traefik.http.routers.wordpress-prod01-http.service=wordpress-prod01-http"
       
-      # Service
-      - "traefik.http.services.longhorn.loadBalancer.passHostHeader=true"
-      - "traefik.http.services.longhorn.loadBalancer.servers[0].url=http://192.168.10.40/"
+      ################################################################################
+      # SERVICE - LOAD BALANCER CONFIGURATION
+      ################################################################################
 
+      - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
   nginx-failover:
     image: nginx:alpine
     mem_limit: 50m
     cpus: 0.25
     container_name: nginx-failover
     restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "--providers.docker.network=web"
-      - "traefik.http.routers.nginx-failover.rule=Host(`tlta.online`)"
-      - "traefik.http.routers.nginx-failover.entrypoints=websecure"
-      - "traefik.http.routers.nginx-failover.tls=true"
+    # labels:
+    #   - "traefik.enable=true"
+    #   - "--providers.docker.network=web"
+    #   - "traefik.http.routers.nginx-failover.rule=Host(`tlta.online`)"
+    #   - "traefik.http.routers.nginx-failover.entrypoints=websecure"
+    #   - "traefik.http.routers.nginx-failover.tls=true"
     ports:
       - "8081:80"
     volumes:
