@@ -9,7 +9,7 @@ networks:
 
 services:
   traefik:
-    image: traefik:v3.1
+    image: traefik:v3.6
     mem_limit: 256m
     cpus: 0.5
     container_name: reverse-proxy
@@ -65,9 +65,8 @@ services:
       - "traefik.http.routers.wordpress-dev01-https.service=wordpress-dev01-https"
       
       # Service
-      - "traefik.http.services.wordpress-dev01-https.loadbalancer.passHostHeader=true"
-      - "traefik.http.services.wordpress-dev01-https.loadbalancer.server.url=http://192.168.10.40/"
-
+      - "traefik.http.services.wordpress-dev01-https.loadBalancer.passHostHeader=true"
+      - "traefik.http.services.wordpress-dev01-https.loadBalancer.servers[0].url=http://192.168.10.40/"
       
       ################################################################################
       # WORDPRESS PRODUCTION - HTTPS
@@ -79,8 +78,8 @@ services:
       - "traefik.http.routers.wordpress-prod-https.service=wordpress-prod-https"
       
       # Service
-      - "traefik.http.services.wordpress-prod-https.loadbalancer.passHostHeader=true"
-      - "traefik.http.services.wordpress-prod-https.loadbalancer.server.url=http://192.168.10.40/"
+      - "traefik.http.services.wordpress-prod-https.loadBalancer.passHostHeader=true"
+      - "traefik.http.services.wordpress-prod-https.loadBalancer.servers[0].url=http://192.168.10.40/"
 
       ################################################################################
       # LONGHORN STORAGE - HTTPS
@@ -92,8 +91,8 @@ services:
       - "traefik.http.routers.longhorn.service=longhorn"
       
       # Service
-      - "traefik.http.services.longhorn.loadbalancer.passHostHeader=true"
-      - "traefik.http.services.longhorn.loadbalancer.server.url=http://192.168.10.40/"
+      - "traefik.http.services.longhorn.loadBalancer.passHostHeader=true"
+      - "traefik.http.services.longhorn.loadBalancer.servers[0].url=http://192.168.10.40/"
 
   nginx-failover:
     image: nginx:alpine
@@ -103,6 +102,7 @@ services:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
+      - "--providers.docker.network=web"
       - "traefik.http.routers.nginx-failover.rule=Host(`tlta.online`)"
       - "traefik.http.routers.nginx-failover.entrypoints=websecure"
       - "traefik.http.routers.nginx-failover.tls=true"
