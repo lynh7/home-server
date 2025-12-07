@@ -32,6 +32,8 @@ wordpress:
   wordpressPlugins: all
   allowEmptyPassword: false
 
+  wordpressEnableHttps: yes
+
   initContainers: []
   resources: {}
 

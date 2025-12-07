@@ -49,6 +49,8 @@ wordpress:
   wordpressBlogName: "hiroschem"
   wordpressPlugins: all
   allowEmptyPassword: false
+  wordpressScheme: https
+  wordpressEnableHttps: yes
 
   initContainers: []
   resources: {}
