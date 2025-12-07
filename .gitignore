@@ -27,4 +27,5 @@ data/
 wyse/pihole
 wyse/traefik/letsencrypt/
 # Ignore letsencrypt folder inside traefik folder
-proxmox
+proxmox/
+terraform/
