@@ -14,11 +14,11 @@ redis:
 
 minio:
   persistence:
-    size: 8Gi
+    size: 10Gi
   ingress:
     enabled: true
     ingressClassName: nginx
-    hostname: minio.tks-prod01.lab
+    hostname: minio.tks-cluster.prod01.tlta.online
 
 wordpress:
   replicaCount: 1
@@ -32,7 +32,7 @@ wordpress:
   wordpressPlugins: all
   allowEmptyPassword: false
 
-  wordpressEnableHttps: yes
+  wordpressEnableHttps: no
 
   initContainers: []
   resources: {}

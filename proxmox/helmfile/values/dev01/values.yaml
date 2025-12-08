@@ -36,7 +36,7 @@ minio:
   ingress:
     enabled: true
     ingressClassName: nginx
-    hostname: minio.tks-dev01.lab
+    hostname: minio.tks-cluster.dev01.tlta.online
 
 wordpress:
   replicaCount: 1
