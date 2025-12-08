@@ -1,3 +1,5 @@
+version: '3.9'
+
 networks:
   web:
     driver: bridge
@@ -72,6 +74,15 @@ services:
       - ./nginx:/usr/share/nginx/html:ro
     networks:
       - web
+
+  coredns:
+    image: coredns/coredns:latest
+    network_mode: "host"
+    ports:
+      - "192.168.1.100:53:53/udp"
+      - "192.168.1.100:53:53/tcp"
+    restart: unless-stopped
+    command: -conf /etc/coredns/Corefile
 
   # pihole:
   #     image: pihole/pihole:2025.07.1
