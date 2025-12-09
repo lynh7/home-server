@@ -1,5 +1,3 @@
-version: '3.9'
-
 networks:
   web:
     driver: bridge
@@ -35,6 +33,12 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=proxy"
       - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=tthienan1710@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--log.level=INFO"
 
     labels:
       - "traefik.enable=true"
@@ -53,9 +57,44 @@ services:
       ################################################################################
       # SERVICE - LOAD BALANCER CONFIGURATION
       ################################################################################
-
       - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
       - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
+
+      ################################################################################
+      # HTTPS CONFIGURATION - MinIO
+      ################################################################################
+      - "traefik.http.routers.minio-dev01-https.rule=Host(`minio.tks-cluster.dev01.tlta.online`)"
+      - "traefik.http.routers.minio-dev01-https.entrypoints=websecure"
+      - "traefik.http.routers.minio-dev01-https.tls=true"
+      - "traefik.http.routers.minio-dev01-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.minio-dev01-https.service=minio-dev01-https"
+      - "traefik.http.routers.minio-dev01-https.middlewares=minio-headers"
+      
+      # HTTP to HTTPS redirect for MinIO
+      - "traefik.http.routers.minio-dev01-http.rule=Host(`minio.tks-cluster.dev01.tlta.online`)"
+      - "traefik.http.routers.minio-dev01-http.entrypoints=web"
+      - "traefik.http.routers.minio-dev01-http.middlewares=minio-redirect-https"
+      - "traefik.http.routers.minio-dev01-http.service=minio-dev01-https"
+
+      ################################################################################
+      # MIDDLEWARE CONFIGURATION - MinIO Headers
+      ################################################################################
+      # Redirect middleware
+      - "traefik.http.middlewares.minio-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.minio-redirect-https.redirectscheme.permanent=true"
+      
+      # Headers middleware for MinIO
+      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Real-IP="
+      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-For="
+      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-Host=minio.tks-cluster.dev01.tlta.online"
+      
+      ################################################################################
+      # SERVICE - LOAD BALANCER CONFIGURATION - MinIO
+      ################################################################################
+      - "traefik.http.services.minio-dev01-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.minio-dev01-https.loadbalancer.passhostheader=true"
+
   nginx-failover:
     image: nginx:alpine
     mem_limit: 50m
