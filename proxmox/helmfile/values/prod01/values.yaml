@@ -12,14 +12,6 @@ redis:
     persistence:
       size: 5Gi
 
-minio:
-  persistence:
-    size: 10Gi
-  ingress:
-    enabled: true
-    ingressClassName: nginx
-    hostname: minio.tks-cluster.prod01.tlta.online
-
 wordpress:
   replicaCount: 1
 

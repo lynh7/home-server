@@ -76,6 +76,10 @@ releases:
 
   #could combine to 1 release later
 
+  - name: minio
+    namespace: minio
+    chart: ../helm-charts/minio-s3
+
   #CSI storage drivers
   - name: longhorn
     needs:

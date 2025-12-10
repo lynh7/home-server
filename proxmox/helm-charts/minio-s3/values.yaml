@@ -1,0 +1,16 @@
+global:
+  imageRegistry: "public.ecr.aws"
+  security:
+    ## @param global.security.allowInsecureImages Allows skipping image verification
+    allowInsecureImages: false
+minio:
+  auth: {}
+  mode: standalone
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    size: 10Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: minio.tks-cluster.tlta.online

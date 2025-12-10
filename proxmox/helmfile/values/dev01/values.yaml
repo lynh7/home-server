@@ -26,18 +26,6 @@ redis:
       accessMode: ["ReadWriteMany"]
       size: 1Gi
 
-minio:
-  auth: {}
-  mode: standalone
-  persistence:
-    enabled: true
-    storageClass: longhorn
-    size: 1Gi
-  ingress:
-    enabled: true
-    ingressClassName: nginx
-    hostname: minio.tks-cluster.dev01.tlta.online
-
 wordpress:
   replicaCount: 1
 

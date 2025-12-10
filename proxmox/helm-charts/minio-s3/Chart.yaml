@@ -1,0 +1,9 @@
+apiVersion: v2
+name: minio-s3
+description: A Helm chart for MinIO S3 deployment
+type: application
+version: 0.1.0
+dependencies:
+  - name: minio
+    version: 12.13.0
+    repository: file://./dependencies/minio

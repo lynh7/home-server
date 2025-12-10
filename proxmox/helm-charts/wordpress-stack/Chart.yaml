@@ -10,9 +10,6 @@ dependencies:
   - name: redis
     version: 21.0.0
     repository: file://./dependencies/redis
-  - name: minio
-    version: 17.0.21
-    repository: file://./dependencies/minio
   - name: wordpress
     version: 24.2.3
     repository: file://./dependencies/wordpress
