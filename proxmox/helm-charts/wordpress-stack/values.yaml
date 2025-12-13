@@ -30,14 +30,7 @@ redis:
       enabled: true
       storageClass: longhorn
       accessMode: ["ReadWriteMany"]
-
-minio:
-  auth: {}
-  mode: standalone
-  persistence:
-    enabled: true
-    storageClass: longhorn
-
+      
 wordpress:
   replicaCount: 1
 
@@ -106,25 +99,6 @@ wordpress:
   #   $_SERVER["HTTPS"] = "on";
 
   wordpressConfiguration: ""
-
-  extraEnvVars:  
-    - name: MINIO_ROOT_USER
-      valueFrom:
-        secretKeyRef:
-          name: wordpress-stack-minio
-          key: root-user
-    - name: MINIO_ROOT_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: wordpress-stack-minio
-          key: root-password
-    
-    # Pull Redis password from separate secret
-    - name: REDIS_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: wordpress-stack-redis
-          key: redis-password
 
   service:
     type: ClusterIP

@@ -97,24 +97,24 @@ wordpress:
 
   wordpressConfiguration: ""
 
-  extraEnvVars:  
-    - name: MINIO_ROOT_USER
-      valueFrom:
-        secretKeyRef:
-          name: wordpress-stack-minio
-          key: root-user
-    - name: MINIO_ROOT_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: wordpress-stack-minio
-          key: root-password
+  # extraEnvVars:  
+  #   - name: MINIO_ROOT_USER
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: wordpress-stack-minio
+  #         key: root-user
+  #   - name: MINIO_ROOT_PASSWORD
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: wordpress-stack-minio
+  #         key: root-password
     
-    # Pull Redis password from separate secret
-    - name: REDIS_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: wordpress-stack-redis
-          key: redis-password
+  #   # Pull Redis password from separate secret
+  #   - name: REDIS_PASSWORD
+  #     valueFrom:
+  #       secretKeyRef:
+  #         name: wordpress-stack-redis
+  #         key: redis-password
   
   extraVolumes: 
     - name: wp-config
