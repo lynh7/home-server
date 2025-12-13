@@ -63,7 +63,7 @@ services:
       ################################################################################
       # HTTPS CONFIGURATION - MinIO
       ################################################################################
-      - "traefik.http.routers.minio-dev01-https.rule=Host(`minio.tks-cluster.dev01.tlta.online`)"
+      - "traefik.http.routers.minio-dev01-https.rule=Host(`minio.tks-cluster.tlta.online`)"
       - "traefik.http.routers.minio-dev01-https.entrypoints=websecure"
       - "traefik.http.routers.minio-dev01-https.tls=true"
       - "traefik.http.routers.minio-dev01-https.tls.certresolver=letsencrypt"
@@ -71,7 +71,7 @@ services:
       - "traefik.http.routers.minio-dev01-https.middlewares=minio-headers"
       
       # HTTP to HTTPS redirect for MinIO
-      - "traefik.http.routers.minio-dev01-http.rule=Host(`minio.tks-cluster.dev01.tlta.online`)"
+      - "traefik.http.routers.minio-dev01-http.rule=Host(`minio.tks-cluster.tlta.online`)"
       - "traefik.http.routers.minio-dev01-http.entrypoints=web"
       - "traefik.http.routers.minio-dev01-http.middlewares=minio-redirect-https"
       - "traefik.http.routers.minio-dev01-http.service=minio-dev01-https"
@@ -87,7 +87,7 @@ services:
       - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Real-IP="
       - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-For="
       - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-Host=minio.tks-cluster.dev01.tlta.online"
+      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-Host=minio.tks-cluster.tlta.online"
       
       ################################################################################
       # SERVICE - LOAD BALANCER CONFIGURATION - MinIO
@@ -114,15 +114,29 @@ services:
     networks:
       - web
 
-  coredns:
-    image: coredns/coredns:latest
-    network_mode: "host"
-    ports:
-      - "192.168.1.100:53:53/udp"
-      - "192.168.1.100:53:53/tcp"
-    restart: unless-stopped
-    command: -conf /etc/coredns/Corefile
-
+  # coredns:
+  #   image: coredns/coredns:latest
+  #   container_name: coredns
+  #   network_mode: "host"
+  #   ports:
+  #     - "192.168.1.100:53:53/udp"
+  #     - "192.168.1.100:53:53/tcp"
+  #   restart: unless-stopped
+  #   command: -conf /etc/coredns/Corefile
+  
+  cloudflare-ddns:
+    image: favonia/cloudflare-ddns:latest
+    container_name: ddns-cloudflare
+    restart: always
+    # Restart the updater after reboot
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [all]
+    security_opt: [no-new-privileges:true]
+    environment:
+      - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
+      - DOMAINS=${DOMAINS}
+      - PROXIED=true
   # pihole:
   #     image: pihole/pihole:2025.07.1
   #     mem_limit: 256m
