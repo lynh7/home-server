@@ -21,3 +21,7 @@ minio:
     enabled: true
     ingressClassName: nginx
     hostname: minio.tks-cluster.tlta.online
+  apiIngress:
+    enabled: true
+    ingressClassName: nginx
+    hostname: minio-api.tks-cluster.tlta.online

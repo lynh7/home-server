@@ -37,12 +37,16 @@ wordpress:
   wordpressBlogName: "hiroschem"
   wordpressPlugins: all
   allowEmptyPassword: false
-  wordpressScheme: https
-  wordpressEnableHttps: yes
-
+  wordpressScheme: http
+  wordpressEnableHttps: no
   initContainers: []
-  resources: {}
-
+  resources:
+    limits: 
+      cpu: 250m
+      memory: 1Gi
+    requests:
+      cpu: 50m
+      memory: 100Mi
   # Disable persistence to make it stateless
   persistence:
     enabled: true
@@ -65,7 +69,7 @@ wordpress:
     host: wordpress-stack-redis-master
     port: 6379
 
-  wordpressSkipInstall: true
+  wordpressSkipInstall: false
   # wordpressExtraConfigContent: |
   #       # define('WP_REDIS_HOST', 'redis-service');
   #       # define('WP_REDIS_PORT', 6379);
@@ -95,7 +99,7 @@ wordpress:
   # wordpressExtraConfigContent: |                                                                                                                                                        
   #   $_SERVER["HTTPS"] = "on";
 
-  wordpressConfiguration: ""
+  # wordpressConfiguration: ""
 
   # extraEnvVars:  
   #   - name: MINIO_ROOT_USER
@@ -116,14 +120,14 @@ wordpress:
   #         name: wordpress-stack-redis
   #         key: redis-password
   
-  extraVolumes: 
-    - name: wp-config
-      configMap:
-        name: wordpress-wp-config-php-init
+  # extraVolumes: 
+  #   - name: wp-config
+  #     configMap:
+  #       name: wordpress-wp-config-php-init
 
-  extraVolumesMounts: 
-    - name: wp-config
-      mountPath: /opt/bitnami/wordpress/wp-config.php
+  # extraVolumesMounts: 
+  #   - name: wp-config
+  #     mountPath: /opt/bitnami/wordpress/wp-config.php
 
   service:
     type: ClusterIP
@@ -151,7 +155,7 @@ wordpress:
   #     type: "RuntimeDefault"
 
   customConfig: #deploy custom configmap for wp-config.php
-    enabled: true
+    enabled: false
 
   ingress:
     enabled: true
