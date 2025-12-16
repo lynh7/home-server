@@ -55,40 +55,68 @@ services:
       ################################################################################
       - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
 
-      ################################################################################
-      # HTTPS CONFIGURATION - MinIO
-      ################################################################################
-      - "traefik.http.routers.minio-dev01-https.rule=Host(`minio.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.minio-dev01-https.entrypoints=websecure"
-      - "traefik.http.routers.minio-dev01-https.tls=true"
-      - "traefik.http.routers.minio-dev01-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.minio-dev01-https.service=minio-dev01-https"
-      - "traefik.http.routers.minio-dev01-https.middlewares=minio-headers"
       
-      # HTTP to HTTPS redirect for MinIO
-      - "traefik.http.routers.minio-dev01-http.rule=Host(`minio.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.minio-dev01-http.entrypoints=web"
-      - "traefik.http.routers.minio-dev01-http.middlewares=minio-redirect-https"
-      - "traefik.http.routers.minio-dev01-http.service=minio-dev01-https"
-
       ################################################################################
-      # MIDDLEWARE CONFIGURATION - MinIO Headers
+      # MIDDLEWARE CONFIGURATION - MinIO
       ################################################################################
-      # Redirect middleware
+      # Redirect middleware (shared)
       - "traefik.http.middlewares.minio-redirect-https.redirectscheme.scheme=https"
       - "traefik.http.middlewares.minio-redirect-https.redirectscheme.permanent=true"
       
-      # Headers middleware for MinIO
-      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Real-IP="
-      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-For="
-      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.minio-headers.headers.customrequestheaders.X-Forwarded-Host=minio.tks-cluster.tlta.online"
+      # Headers middleware for MinIO-API 
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Real-IP="
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-For="
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-Host=minio-api.tks-cluster.tlta.online"
+      
+      # Headers middleware for MinIO-Console
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Real-IP="
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-For="
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-Host=minio.tks-cluster.tlta.online"
       
       ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION - MinIO
+      # SERVICE - LOAD BALANCER CONFIGURATION
       ################################################################################
-      - "traefik.http.services.minio-dev01-https.loadbalancer.server.url=http://192.168.10.40"
-      - "traefik.http.services.minio-dev01-https.loadbalancer.passhostheader=true"
+      # MinIO-API Service (Port 9000)
+      - "traefik.http.services.minio-api-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.minio-api-https.loadbalancer.passhostheader=true"
+      
+      # MinIO-Console Service (Port 9001)
+      - "traefik.http.services.minio-console-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.minio-console-https.loadbalancer.passhostheader=true"
+      
+      ################################################################################
+      # HTTPS CONFIGURATION - MinIO-API (minio-api.tks-cluster.tlta.online)
+      ################################################################################
+      - "traefik.http.routers.minio-api-https.rule=Host(`minio-api.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.minio-api-https.entrypoints=websecure"
+      - "traefik.http.routers.minio-api-https.tls=true"
+      - "traefik.http.routers.minio-api-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.minio-api-https.service=minio-api-https"
+      - "traefik.http.routers.minio-api-https.middlewares=minio-api-headers"
+      
+      # HTTP to HTTPS redirect for MinIO-API
+      - "traefik.http.routers.minio-api-http.rule=Host(`minio-api.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.minio-api-http.entrypoints=web"
+      - "traefik.http.routers.minio-api-http.middlewares=minio-redirect-https"
+      - "traefik.http.routers.minio-api-http.service=minio-api-https"
+      
+      ################################################################################
+      # HTTPS CONFIGURATION - MinIO-Console (minio.tks-cluster.tlta.online)
+      ################################################################################
+      - "traefik.http.routers.minio-console-https.rule=Host(`minio.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.minio-console-https.entrypoints=websecure"
+      - "traefik.http.routers.minio-console-https.tls=true"
+      - "traefik.http.routers.minio-console-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.minio-console-https.service=minio-console-https"
+      - "traefik.http.routers.minio-console-https.middlewares=minio-console-headers"
+      
+      # HTTP to HTTPS redirect for MinIO-Console
+      - "traefik.http.routers.minio-console-http.rule=Host(`minio.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.minio-console-http.entrypoints=web"
+      - "traefik.http.routers.minio-console-http.middlewares=minio-redirect-https"
+      - "traefik.http.routers.minio-console-http.service=minio-console-https"
 
       ################################################################################
       # HTTPS CONFIGURATION - Longhorn
@@ -105,6 +133,7 @@ services:
       - "traefik.http.routers.longhorn-http.entrypoints=web"
       - "traefik.http.routers.longhorn-http.middlewares=longhorn-redirect-https"
       - "traefik.http.routers.longhorn-http.service=longhorn-https"
+      
 
       ################################################################################
       # MIDDLEWARE CONFIGURATION - longhorn Headers
