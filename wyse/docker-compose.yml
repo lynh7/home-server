@@ -54,6 +54,18 @@ services:
       # SERVICE - LOAD BALANCER CONFIGURATION
       ################################################################################
       - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
+      
+      ################################################################################
+      # HTTP CONFIGURATION - WORDPRESS PROD
+      ################################################################################
+      - "traefik.http.routers.wordpress-prod01-http.rule=Host(`wp.tlta.online`)"
+      - "traefik.http.routers.wordpress-prod01-http.entrypoints=web"
+      - "traefik.http.routers.wordpress-prod01-http.service=wordpress-prod01-http"
+      
+      ################################################################################
+      # SERVICE - LOAD BALANCER CONFIGURATION
+      ################################################################################
+      - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
 
       
       ################################################################################
