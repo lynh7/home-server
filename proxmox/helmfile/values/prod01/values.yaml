@@ -1,15 +1,28 @@
 mysql:
-
+  architecture: standalone
+  auth:
+    createDatabase: true
+    database: wordpress
+    username: andy
+  
   primary:
     persistence:
-      size: 20Gi #default 20Gi
+      enabled: true
+      storageClass: longhorn
+      size: 10Gi #default 20Gi
 
   metrics:
     enabled: false # Will enable later
 
 redis:
+  architecture: standalone
+  auth:
+    enabled: true
   master:
     persistence:
+      enabled: true
+      storageClass: longhorn
+      accessMode: ["ReadWriteMany"]
       size: 5Gi
 
 wordpress:
@@ -17,23 +30,28 @@ wordpress:
 
   # wordpressUsername: admin
   # wordpressPassword: admin123
-  wordpressEmail: hoang.tlta17@gmail.com
-  wordpressFirstName: tlta
-  wordpressLastName: Hoang
-  wordpressBlogName: "hiroschem"
+  # wordpressEmail: hoang.tlta17@gmail.com
+  # wordpressFirstName: tlta
+  # wordpressLastName: Hoang
+  # wordpressBlogName: "hiroschem"
   wordpressPlugins: all
   allowEmptyPassword: false
-
+  wordpressScheme: http
   wordpressEnableHttps: no
-
   initContainers: []
-  resources: {}
+  resources:
+    limits: 
+      cpu: 350m
+      memory: 1.5Gi
+    requests:
+      cpu: 50m
+      memory: 100Mi
 
   # Disable persistence to make it stateless
   persistence:
     enabled: true
     storageClass: longhorn
-    size: 5Gi
+    size: 500Mi
     accessMode: ["ReadWriteMany"]
 
   mariadb:
