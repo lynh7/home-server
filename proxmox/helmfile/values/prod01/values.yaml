@@ -51,7 +51,7 @@ wordpress:
   persistence:
     enabled: true
     storageClass: longhorn
-    size: 500Mi
+    size: 12Gi
     accessMode: ["ReadWriteMany"]
 
   mariadb:
