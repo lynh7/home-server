@@ -4,3 +4,4 @@ proxmox/helm-charts/networking-stack/charts
 proxmox/helm-charts/networking-stack/Chart.lock
 proxmox/helm-charts/monitoring-stack/charts
 proxmox/helm-charts/wordpress-stack/Chart.lock
+NOTE
