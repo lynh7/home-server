@@ -1,0 +1,212 @@
+global: {}
+oauth2-proxy:
+  namespaceOverride: ""
+
+  # Force the target Kubernetes version (it uses Helm `.Capabilities` if not set).
+  # This is especially useful for `helm template` as capabilities are always empty
+  # due to the fact that it doesn't query an actual cluster
+  kubeVersion:
+
+  # Oauth client configuration specifics
+  config:
+    # Add config annotations
+    annotations: {}
+    # OAuth client ID
+    clientID: "XXXXXXX"
+    # OAuth client secret
+    clientSecret: "XXXXXXXX"
+    # Create a new secret with the following command
+    # openssl rand -base64 32 | head -c 32 | base64
+    # Use an existing secret for OAuth2 credentials (see secret.yaml for required fields)
+    # Example:
+    # existingSecret: secret
+    cookieSecret: "XXXXXXXXXXXXXXXX"
+    # The name of the cookie that oauth2-proxy will create
+    # If left empty, it will default to the release name
+    cookieName: ""
+    google: {}
+      # adminEmail: xxxx
+      # useApplicationDefaultCredentials: true
+      # targetPrincipal: xxxx
+      # serviceAccountJson: xxxx
+      # Alternatively, use an existing secret (see google-secret.yaml for required fields)
+      # Example:
+      # existingSecret: google-secret
+      # groups: []
+      # Example:
+      #  - group1@example.com
+      #  - group2@example.com
+    # Default configuration, to be overridden
+    configFile: |-
+      provider = "google"
+      email_domains = [ "*" ]
+      upstreams = [ "file:///dev/null" ]
+      cookie_domains = [ "*.tks-cluster.tlta.online" ]
+      whitelist_domains = [ "*.tks-cluster.tlta.online" ]
+      cookie_secure = true
+      cookie_samesite = "lax"
+      set_xauthrequest = true
+      pass_access_token = true
+      pass_authorization_header = true
+    # Custom configuration file: oauth2_proxy.cfg
+    # configFile: |-
+    #   pass_basic_auth = false
+    #   pass_access_token = true
+    # Use an existing config map (see configmap.yaml for required fields)
+    # Example:
+    # existingConfig: config
+
+
+  image:
+    repository: "quay.io/oauth2-proxy/oauth2-proxy"
+    # appVersion is used by default
+    tag: ""
+    pullPolicy: "IfNotPresent"
+    command: []
+
+  # Optionally specify an array of imagePullSecrets.
+  # Secrets must be manually created in the namespace.
+  # ref: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+  imagePullSecrets: []
+    # - name: myRegistryKeySecretName
+
+  # Set a custom containerPort if required.
+  # This will default to 4180 if this value is not set and the httpScheme set to http
+  # This will default to 4443 if this value is not set and the httpScheme set to https
+  # containerPort: 4180
+
+  extraArgs: {}
+  extraEnv: []
+
+  envFrom: []
+  # Load environment variables from a ConfigMap(s) and/or Secret(s)
+  # that already exists (created and managed by you).
+  # ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#configure-all-key-value-pairs-in-a-configmap-as-container-environment-variables
+  #
+  # PS: Changes in these ConfigMaps or Secrets will not be automatically
+  #     detected and you must manually restart the relevant Pods after changes.
+  #
+  #  - configMapRef:
+  #      name: special-config
+  #  - secretRef:
+  #      name: special-config-secret
+
+  # -- Custom labels to add into metadata
+  customLabels: {}
+
+  service:
+    type: ClusterIP
+    # when service.type is ClusterIP ...
+    # clusterIP: 192.0.2.20
+    # when service.type is LoadBalancer ...
+    # loadBalancerIP: 198.51.100.40
+    # loadBalancerSourceRanges: 203.0.113.0/24
+    # when service.type is NodePort ...
+    # nodePort: 80
+    portNumber: 80
+    # Protocol set on the service
+    appProtocol: http
+    annotations: {}
+    # foo.io/bar: "true"
+    # configure externalTrafficPolicy
+    externalTrafficPolicy: ""
+    # configure internalTrafficPolicy
+    internalTrafficPolicy: ""
+    # configure service target port
+    targetPort: ""
+    # Configures the service to use IPv4/IPv6 dual-stack.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/dual-stack/
+    ipDualStack:
+      enabled: false
+      ipFamilies: ["IPv6", "IPv4"]
+      ipFamilyPolicy: "PreferDualStack"
+    # Configure traffic distribution for the service
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/service/#traffic-distribution
+    trafficDistribution: ""
+
+  ## Create or use ServiceAccount
+  serviceAccount:
+    ## Specifies whether a ServiceAccount should be created
+    enabled: true
+    ## The name of the ServiceAccount to use.
+    ## If not set and create is true, a name is generated using the fullname template
+    name:
+    automountServiceAccountToken: true
+    annotations: {}
+    ## imagePullSecrets for the service account
+    imagePullSecrets: []
+      # - name: myRegistryKeySecretName
+
+  ingress:
+    enabled: true
+    className: "nginx"
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    hosts:
+      - oauth2-proxy.tks-cluster.tlta.online
+
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
+  # whether to use http or https
+  httpScheme: http
+
+  metrics:
+    # Enable Prometheus metrics endpoint
+    enabled: false
+    # Serve Prometheus metrics on this port
+    port: 44180
+    # when service.type is NodePort ...
+    # nodePort: 44180
+    # Protocol set on the service for the metrics port
+    service:
+      appProtocol: http
+    serviceMonitor:
+      # Enable Prometheus Operator ServiceMonitor
+      enabled: false
+      # Define the namespace where to deploy the ServiceMonitor resource
+      namespace: ""
+      # Prometheus Instance definition
+      prometheusInstance: default
+      # Prometheus scrape interval
+      interval: 60s
+      # Prometheus scrape timeout
+      scrapeTimeout: 30s
+      # Add custom labels to the ServiceMonitor resource
+      labels: {}
+
+      ## scheme: HTTP scheme to use for scraping. Can be used with `tlsConfig` for example if using istio mTLS.
+      scheme: ""
+
+      ## tlsConfig: TLS configuration to use when scraping the endpoint. For example if using istio mTLS.
+      ## Of type: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#tlsconfig
+      tlsConfig: {}
+
+      ## bearerTokenFile: Path to bearer token file.
+      bearerTokenFile: ""
+
+      ## Used to pass annotations that are used by the Prometheus installed in your cluster to select Service Monitors to work with
+      ## ref: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusspec
+      annotations: {}
+
+      ## Metric relabel configs to apply to samples before ingestion.
+      ## [Metric Relabeling](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#metric_relabel_configs)
+      metricRelabelings: []
+      # - action: keep
+      #   regex: 'kube_(daemonset|deployment|pod|namespace|node|statefulset).+'
+      #   sourceLabels: [__name__]
+
+      ## Relabel configs to apply to samples before ingestion.
+      ## [Relabeling](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#relabel_config)
+      relabelings: []
+      # - sourceLabels: [__meta_kubernetes_pod_node_name]
+      #   separator: ;
+      #   regex: ^(.*)$
+      #   targetLabel: nodename
+      #   replacement: $1
+      #   action: replace
