@@ -66,7 +66,13 @@ services:
       # SERVICE - LOAD BALANCER CONFIGURATION
       ################################################################################
       - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
-
+      
+      ################################################################################
+      # OAUTH2 MIDDLEWARE CONFIGURATION
+      ################################################################################
+      - "traefik.http.middlewares.oauth2-auth.forwardauth.address=http://oauth2-proxy:4180/oauth2/auth"
+      - "traefik.http.middlewares.oauth2-auth.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.oauth2-auth.forwardauth.authResponseHeaders=X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Access-Token"
       
       ################################################################################
       # MIDDLEWARE CONFIGURATION - MinIO
@@ -122,7 +128,7 @@ services:
       - "traefik.http.routers.minio-console-https.tls=true"
       - "traefik.http.routers.minio-console-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.minio-console-https.service=minio-console-https"
-      - "traefik.http.routers.minio-console-https.middlewares=minio-console-headers"
+      - "traefik.http.routers.minio-console-https.middlewares=oauth2-auth,minio-console-headers"
       
       # HTTP to HTTPS redirect for MinIO-Console
       - "traefik.http.routers.minio-console-http.rule=Host(`minio.tks-cluster.tlta.online`)"
@@ -138,7 +144,7 @@ services:
       - "traefik.http.routers.longhorn-https.tls=true"
       - "traefik.http.routers.longhorn-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.longhorn-https.service=longhorn-https"
-      - "traefik.http.routers.longhorn-https.middlewares=longhorn-headers"
+      - "traefik.http.routers.longhorn-https.middlewares=oauth2-auth,longhorn-headers"
       
       # HTTP to HTTPS redirect for longhorn
       - "traefik.http.routers.longhorn-http.rule=Host(`longhorn.tks-cluster.tlta.online`)"
@@ -221,6 +227,63 @@ services:
   #     - "192.168.1.100:53:53/tcp"
   #   restart: unless-stopped
   #   command: -conf /etc/coredns/Corefile
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.5.1
+    container_name: oauth2-proxy
+    mem_limit: 128m
+    cpus: 0.25
+    restart: unless-stopped
+    command:
+      - --http-address=0.0.0.0:4180
+      - --upstream=static://202
+      - --email-domain=*
+      - --cookie-domain=.tks-cluster.tlta.online
+      - --whitelist-domain=.tks-cluster.tlta.online
+      - --cookie-secure=true
+      - --cookie-secret=${OAUTH2_COOKIE_SECRET}
+      - --provider=google
+      - --client-id=${GOOGLE_CLIENT_ID}
+      - --client-secret=${GOOGLE_CLIENT_SECRET}
+      - --redirect-url=https://auth.tks-cluster.tlta.online/oauth2/callback
+      - --skip-provider-button=true
+      - --reverse-proxy=true
+      - --pass-access-token=true
+      - --pass-host-header=true
+      - --set-xauthrequest=true
+      - --skip-auth-strip-headers=false
+    environment:
+      - OAUTH2_PROXY_COOKIE_SECRET=${OAUTH2_COOKIE_SECRET}
+      - OAUTH2_PROXY_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - OAUTH2_PROXY_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - OAUTH2_PROXY_LOGGING_LEVEL=debug
+    networks:
+      - web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"
+        max-file: "5"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.oauth2-proxy.loadbalancer.server.port=4180"
+      
+      # OAuth2 auth subdomain - HTTPS
+      - "traefik.http.routers.oauth2-proxy-https.rule=Host(`auth.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.oauth2-proxy-https.entrypoints=websecure"
+      - "traefik.http.routers.oauth2-proxy-https.tls=true"
+      - "traefik.http.routers.oauth2-proxy-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.oauth2-proxy-https.service=oauth2-proxy"
+      
+      # HTTP to HTTPS redirect for OAuth2
+      - "traefik.http.routers.oauth2-proxy-http.rule=Host(`auth.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.oauth2-proxy-http.entrypoints=web"
+      - "traefik.http.routers.oauth2-proxy-http.middlewares=oauth2-redirect-https"
+      - "traefik.http.routers.oauth2-proxy-http.service=oauth2-proxy"
+      
+      # Redirect middleware for OAuth2
+      - "traefik.http.middlewares.oauth2-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.oauth2-redirect-https.redirectscheme.permanent=true"
   
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
