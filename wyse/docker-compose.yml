@@ -128,7 +128,7 @@ services:
       - "traefik.http.routers.minio-console-https.tls=true"
       - "traefik.http.routers.minio-console-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.minio-console-https.service=minio-console-https"
-      - "traefik.http.routers.minio-console-https.middlewares=oauth2-auth,minio-console-headers"
+      - "traefik.http.routers.minio-console-https.middlewares=minio-console-headers"
       
       # HTTP to HTTPS redirect for MinIO-Console
       - "traefik.http.routers.minio-console-http.rule=Host(`minio.tks-cluster.tlta.online`)"
@@ -144,7 +144,7 @@ services:
       - "traefik.http.routers.longhorn-https.tls=true"
       - "traefik.http.routers.longhorn-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.longhorn-https.service=longhorn-https"
-      - "traefik.http.routers.longhorn-https.middlewares=oauth2-auth,longhorn-headers"
+      - "traefik.http.routers.longhorn-https.middlewares=longhorn-headers"
       
       # HTTP to HTTPS redirect for longhorn
       - "traefik.http.routers.longhorn-http.rule=Host(`longhorn.tks-cluster.tlta.online`)"
@@ -238,8 +238,8 @@ services:
       - --http-address=0.0.0.0:4180
       - --upstream=static://202
       - --email-domain=*
-      - --cookie-domain=.tks-cluster.tlta.online
-      - --whitelist-domain=.tks-cluster.tlta.online
+      - --cookie-domain=*.tks-cluster.tlta.online
+      - --whitelist-domain=*.tks-cluster.tlta.online
       - --cookie-secure=true
       - --cookie-secret=${OAUTH2_COOKIE_SECRET}
       - --provider=google
