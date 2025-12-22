@@ -50,7 +50,7 @@ releases:
   #   values:
   #     - ../helm-charts/monitoring-stack/monitoring-metric-stack/values.yaml
 
-  #Tools stack (adminer for mysql, redis-insight for redis, mc for minio)
+  #Tools stack (adminer for mysql, redis-insight for redis)
   # - name: monitoring-tools-stack
   #   needs:
   #     - networking/networking-stack
