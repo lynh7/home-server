@@ -9,37 +9,37 @@ networks:
   #   external: true
 
 services:
-  traefik:
-    image: traefik:v3.6
-    mem_limit: 256m
-    cpus: 0.5
-    container_name: reverse-proxy
-    restart: unless-stopped
-    ports:
-      - "80:80"     # Router forwards external 80 → host 80 → container 80
-      - "443:443"   # Router forwards external 443 → host 443 → container 443
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/letsencrypt:/letsencrypt
-      - traefik-data:/etc/traefik
-    networks:
-      - web
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "2m"
-        max-file: "5"
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=web"
-      - "--entryPoints.web.address=:80"
-      - "--entryPoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=tthienan1710@gmail.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--log.level=INFO"
+  # traefik:
+  #   image: traefik:v3.6
+  #   mem_limit: 256m
+  #   cpus: 0.5
+  #   container_name: reverse-proxy
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"     # Router forwards external 80 → host 80 → container 80
+  #     - "443:443"   # Router forwards external 443 → host 443 → container 443
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #     - ./traefik/letsencrypt:/letsencrypt
+  #     - traefik-data:/etc/traefik
+  #   networks:
+  #     - web
+  #   logging:
+  #     driver: "json-file"
+  #     options:
+  #       max-size: "2m"
+  #       max-file: "5"
+  #   command:
+  #     - "--providers.docker=true"
+  #     - "--providers.docker.exposedbydefault=false"
+  #     - "--providers.docker.network=web"
+  #     - "--entryPoints.web.address=:80"
+  #     - "--entryPoints.websecure.address=:443"
+  #     - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  #     - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+  #     - "--certificatesresolvers.letsencrypt.acme.email=tthienan1710@gmail.com"
+  #     - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+  #     - "--log.level=INFO"
 
     labels:
       - "traefik.enable=true"
