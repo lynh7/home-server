@@ -29,207 +29,6 @@ services:
 
       - "traefik.http.services.main-https.loadbalancer.server.port=80"
 
-      # HTTP redirect -> HTTPS
-      - "traefik.http.routers.main-http.rule=Host(`tlta.online`)"
-      - "traefik.http.routers.main-http.entrypoints=web"
-      - "traefik.http.routers.main-http.middlewares=main-redirect-https"
-
-      - "traefik.http.middlewares.main-redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.main-redirect-https.redirectscheme.permanent=true"
-
-    ports:
-      - "8081:80"
-    volumes:
-      - ./nginx:/usr/share/nginx/html:ro
-    networks:
-      - web
-
-  # coredns:
-  #   image: coredns/coredns:latest
-  #   container_name: coredns
-  #   network_mode: "host"
-  #   ports:
-  #     - "192.168.1.100:53:53/udp"
-  #     - "192.168.1.100:53:53/tcp"
-  #   restart: unless-stopped
-  #   ports:
-  #     - "80:80"     # Router forwards external 80 → host 80 → container 80
-  #     - "443:443"   # Router forwards external 443 → host 443 → container 443
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock:ro
-  #     - ./traefik/letsencrypt:/letsencrypt
-  #     - traefik-data:/etc/traefik
-  #   networks:
-  #     - web
-  #   logging:
-  #     driver: "json-file"
-  #     options:
-  #       max-size: "2m"
-  #       max-file: "5"
-  #   command:
-  #     - "--providers.docker=true"
-  #     - "--providers.docker.exposedbydefault=false"
-  #     - "--providers.docker.network=web"
-  #     - "--entryPoints.web.address=:80"
-  #     - "--entryPoints.websecure.address=:443"
-  #     - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-  #     - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-  #     - "--certificatesresolvers.letsencrypt.acme.email=tthienan1710@gmail.com"
-  #     - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-  #     - "--log.level=INFO"
-
-    labels:
-      - "traefik.enable=true"
-      
-      ################################################################################
-      # HTTP CONFIGURATION
-      ################################################################################
-      - "traefik.http.routers.wordpress-dev01-http.rule=Host(`wp.tks-dev01.tlta.online`)"
-      - "traefik.http.routers.wordpress-dev01-http.entrypoints=web"
-      - "traefik.http.routers.wordpress-dev01-http.service=wordpress-dev01-http"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION
-      ################################################################################
-      - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
-      
-      ################################################################################
-      # HTTP CONFIGURATION - WORDPRESS PROD
-      ################################################################################
-      - "traefik.http.routers.wordpress-prod01-http.rule=Host(`wp.tlta.online`)"
-      - "traefik.http.routers.wordpress-prod01-http.entrypoints=web"
-      - "traefik.http.routers.wordpress-prod01-http.service=wordpress-prod01-http"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION
-      ################################################################################
-      - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
-
-      ################################################################################
-      # MIDDLEWARE CONFIGURATION - MinIO
-      ################################################################################
-      # Redirect middleware (shared)
-      - "traefik.http.middlewares.minio-redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.minio-redirect-https.redirectscheme.permanent=true"
-      
-      # Headers middleware for MinIO-API 
-      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Real-IP="
-      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-For="
-      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-Host=minio-api.tks-cluster.tlta.online"
-      
-      # Headers middleware for MinIO-Console
-      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Real-IP="
-      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-For="
-      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-Host=minio.tks-cluster.tlta.online"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION
-      ################################################################################
-      # MinIO-API Service (Port 9000)
-      - "traefik.http.services.minio-api-https.loadbalancer.server.url=http://192.168.10.40"
-      - "traefik.http.services.minio-api-https.loadbalancer.passhostheader=true"
-      
-      # MinIO-Console Service (Port 9001)
-      - "traefik.http.services.minio-console-https.loadbalancer.server.url=http://192.168.10.40"
-      - "traefik.http.services.minio-console-https.loadbalancer.passhostheader=true"
-      
-      ################################################################################
-      # HTTPS CONFIGURATION - MinIO-API (minio-api.tks-cluster.tlta.online)
-      ################################################################################
-      - "traefik.http.routers.minio-api-https.rule=Host(`minio-api.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.minio-api-https.entrypoints=websecure"
-      - "traefik.http.routers.minio-api-https.tls=true"
-      - "traefik.http.routers.minio-api-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.minio-api-https.service=minio-api-https"
-      - "traefik.http.routers.minio-api-https.middlewares=minio-api-headers"
-      
-      # HTTP to HTTPS redirect for MinIO-API
-      - "traefik.http.routers.minio-api-http.rule=Host(`minio-api.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.minio-api-http.entrypoints=web"
-      - "traefik.http.routers.minio-api-http.middlewares=minio-redirect-https"
-      - "traefik.http.routers.minio-api-http.service=minio-api-https"
-      
-      ################################################################################
-      # HTTPS CONFIGURATION - MinIO-Console (minio.tks-cluster.tlta.online)
-      ################################################################################
-      - "traefik.http.routers.minio-console-https.rule=Host(`minio.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.minio-console-https.entrypoints=websecure"
-      - "traefik.http.routers.minio-console-https.tls=true"
-      - "traefik.http.routers.minio-console-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.minio-console-https.service=minio-console-https"
-      - "traefik.http.routers.minio-console-https.middlewares=minio-console-headers"
-      
-      # HTTP to HTTPS redirect for MinIO-Console
-      - "traefik.http.routers.minio-console-http.rule=Host(`minio.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.minio-console-http.entrypoints=web"
-      - "traefik.http.routers.minio-console-http.middlewares=minio-redirect-https"
-      - "traefik.http.routers.minio-console-http.service=minio-console-https"
-
-      ################################################################################
-      # HTTPS CONFIGURATION - Longhorn
-      ################################################################################
-      - "traefik.http.routers.longhorn-https.rule=Host(`longhorn.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.longhorn-https.entrypoints=websecure"
-      - "traefik.http.routers.longhorn-https.tls=true"
-      - "traefik.http.routers.longhorn-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.longhorn-https.service=longhorn-https"
-      - "traefik.http.routers.longhorn-https.middlewares=longhorn-headers"
-      
-      # HTTP to HTTPS redirect for longhorn
-      - "traefik.http.routers.longhorn-http.rule=Host(`longhorn.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.longhorn-http.entrypoints=web"
-      - "traefik.http.routers.longhorn-http.middlewares=longhorn-redirect-https"
-      - "traefik.http.routers.longhorn-http.service=longhorn-https"
-      
-
-      ################################################################################
-      # MIDDLEWARE CONFIGURATION - longhorn Headers
-      ################################################################################
-      # Redirect middleware
-      - "traefik.http.middlewares.longhorn-redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.longhorn-redirect-https.redirectscheme.permanent=true"
-      
-      # Headers middleware for longhorn
-      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Real-IP="
-      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Forwarded-For="
-      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Forwarded-Host=longhorn.tks-cluster.tlta.online"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION - longhorn
-      ################################################################################
-      - "traefik.http.services.longhorn-https.loadbalancer.server.url=http://192.168.10.40"
-      - "traefik.http.services.longhorn-https.loadbalancer.passhostheader=true"
-
-  nginx-failover:
-    image: nginx:alpine
-    mem_limit: 15m
-    container_name: nginx-failover
-    restart: unless-stopped
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=web"
-      ################################################################################
-      # HTTPS CONFIGURATION - Main
-      ################################################################################
-      - "traefik.http.routers.main-https.rule=Host(`tlta.online`)"
-      - "traefik.http.routers.main-https.entrypoints=websecure"
-      - "traefik.http.routers.main-https.tls=true"
-      - "traefik.http.routers.main-https.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.main-https.service=main-https"
-
-      - "traefik.http.services.main-https.loadbalancer.server.port=80"
-
-      # HTTP redirect -> HTTPS
-      - "traefik.http.routers.main-http.rule=Host(`tlta.online`)"
-      - "traefik.http.routers.main-http.entrypoints=web"
-      - "traefik.http.routers.main-http.middlewares=main-redirect-https"
-
-      - "traefik.http.middlewares.main-redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.main-redirect-https.redirectscheme.permanent=true"
-
     ports:
       - "8081:80"
     volumes:
@@ -293,7 +92,7 @@ services:
       resources:
         limits:
           cpus: 1    # Limit to 50% of a single CPU core
-          memory: 512M   # Limit memory to 512MB
+          memory: '1G'   # Limit memory to 512MB
         reservations:
           cpus: '0.25'   # Guarantee 25% of a CPU core
           memory: 128M 
@@ -318,21 +117,160 @@ services:
       ################################################################################
       - "traefik.http.routers.nas-https.rule=Host(`nas.tks-cluster.tlta.online`)"
       - "traefik.http.routers.nas-https.entrypoints=websecure"
-      - "traefik.http.routers.nas-https.tls=true"
-      - "traefik.http.routers.nas-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.nas-https.service=nas-https"
 
       - "traefik.http.services.nas-https.loadbalancer.server.port=80"
 
-      # HTTP redirect -> HTTPS
-      - "traefik.http.routers.nas-http.rule=Host(`nas.tks-cluster.tlta.online`)"
-      - "traefik.http.routers.nas-http.entrypoints=web"
-      - "traefik.http.routers.nas-http.middlewares=nas-redirect-https"
+  traefik-v2:
+    image: traefik:v3.6
+    mem_limit: 256m
+    cpus: 0.5
+    container_name: reverse-proxy-v2
+    restart: always
+    ports:
+      - "443:443"   # Router forwards external 443 → host 443 → container 443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/letsencrypt:/letsencrypt
+      - traefik-data:/etc/traefik
+    networks:
+      - web
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "2m"
+        max-file: "5"
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - "--log.level=DEBUG"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--api.dashboard=false" #Will enable later
 
-      - "traefik.http.middlewares.nas-redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.nas-redirect-https.redirectscheme.permanent=true"
+      # Define entrypoints for HTTPS
+      - "--entryPoints.websecure.address=:443"
+      
+      # Set up LetsEncrypt certificate resolver
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
+      - "--certificatesResolvers.letsencrypt.acme.dnschallenge.resolvers=1.1.1.1:53,1.0.0.1:53"
+      - "--certificatesResolvers.letsencrypt.acme.dnschallenge.delayBeforeCheck=20"
+      - "--certificatesresolvers.letsencrypt.acme.email=${CF_API_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
 
-  
+      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
+      - "--entrypoints.websecure.http.tls.domains[0].main=*.tlta.online"
+      - "--entrypoints.websecure.http.tls.domains[0].sans=*.tks-cluster.tlta.online"
+    environment:
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    labels:
+      - "traefik.enable=true"
+      
+      ################################################################################
+      # HTTP CONFIGURATION
+      ################################################################################
+      - "traefik.http.routers.wordpress-dev01-http.rule=Host(`wp.tks-dev01.tlta.online`)"
+      - "traefik.http.routers.wordpress-dev01-http.service=wordpress-dev01-http"
+      
+      ################################################################################
+      # SERVICE - LOAD BALANCER CONFIGURATION
+      ################################################################################
+      - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
+      
+      ################################################################################
+      # HTTP CONFIGURATION - WORDPRESS PROD
+      ################################################################################
+      - "traefik.http.routers.wordpress-prod01-http.rule=Host(`wp.tlta.online`)"
+      - "traefik.http.routers.wordpress-prod01-http.service=wordpress-prod01-http"
+      
+      ################################################################################
+      # SERVICE - LOAD BALANCER CONFIGURATION
+      ################################################################################
+      - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
+
+      ################################################################################
+      # MIDDLEWARE CONFIGURATION - MinIO
+      ################################################################################
+      # Redirect middleware (shared)
+      - "traefik.http.middlewares.minio-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.minio-redirect-https.redirectscheme.permanent=true"
+      
+      # Headers middleware for MinIO-API 
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Real-IP="
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-For="
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.minio-api-headers.headers.customrequestheaders.X-Forwarded-Host=minio-api.tks-cluster.tlta.online"
+      
+      # Headers middleware for MinIO-Console
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Real-IP="
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-For="
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.minio-console-headers.headers.customrequestheaders.X-Forwarded-Host=minio.tks-cluster.tlta.online"
+      
+      ################################################################################
+      # SERVICE - LOAD BALANCER CONFIGURATION
+      ################################################################################
+      # MinIO-API Service (Port 9000)
+      - "traefik.http.services.minio-api-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.minio-api-https.loadbalancer.passhostheader=true"
+      
+      # MinIO-Console Service (Port 9001)
+      - "traefik.http.services.minio-console-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.minio-console-https.loadbalancer.passhostheader=true"
+      
+      ################################################################################
+      # HTTPS CONFIGURATION - MinIO-API (minio-api.tks-cluster.tlta.online)
+      ################################################################################
+      - "traefik.http.routers.minio-api-https.rule=Host(`minio-api.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.minio-api-https.entrypoints=websecure"
+      - "traefik.http.routers.minio-api-https.tls=true"
+      - "traefik.http.routers.minio-api-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.minio-api-https.service=minio-api-https"
+      - "traefik.http.routers.minio-api-https.middlewares=minio-api-headers"
+      
+      ################################################################################
+      # HTTPS CONFIGURATION - MinIO-Console (minio.tks-cluster.tlta.online)
+      ################################################################################
+      - "traefik.http.routers.minio-console-https.rule=Host(`minio.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.minio-console-https.entrypoints=websecure"
+      - "traefik.http.routers.minio-console-https.tls=true"
+      - "traefik.http.routers.minio-console-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.minio-console-https.service=minio-console-https"
+      - "traefik.http.routers.minio-console-https.middlewares=minio-console-headers"
+
+      ################################################################################
+      # HTTPS CONFIGURATION - Longhorn
+      ################################################################################
+      - "traefik.http.routers.longhorn-https.rule=Host(`longhorn.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.longhorn-https.entrypoints=websecure"
+      - "traefik.http.routers.longhorn-https.tls=true"
+      - "traefik.http.routers.longhorn-https.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.longhorn-https.service=longhorn-https"
+      - "traefik.http.routers.longhorn-https.middlewares=longhorn-headers"
+     
+      ################################################################################
+      # MIDDLEWARE CONFIGURATION - longhorn Headers
+      ################################################################################
+      # Redirect middleware
+      - "traefik.http.middlewares.longhorn-redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.longhorn-redirect-https.redirectscheme.permanent=true"
+      
+      # Headers middleware for longhorn
+      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Real-IP="
+      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Forwarded-For="
+      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.longhorn-headers.headers.customrequestheaders.X-Forwarded-Host=longhorn.tks-cluster.tlta.online"
+      
+      ################################################################################
+      # SERVICE - LOAD BALANCER CONFIGURATION - longhorn
+      ################################################################################
+      - "traefik.http.services.longhorn-https.loadbalancer.server.url=http://192.168.10.40"
+      - "traefik.http.services.longhorn-https.loadbalancer.passhostheader=true"
+      
+    
   # pihole:
   #     image: pihole/pihole:2025.07.1
   #     mem_limit: 256m
