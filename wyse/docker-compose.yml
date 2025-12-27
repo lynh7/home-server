@@ -273,7 +273,7 @@ services:
       - "traefik.http.services.longhorn-https.loadbalancer.passhostheader=true"
       
   wg-easy:
-    image: ghcr.io/wg-easy/wg-easy:15
+    image: ghcr.io/wg-easy/wg-easy:14
     container_name: wireguard-vpn
     deploy:
       resources:
@@ -284,8 +284,8 @@ services:
           cpus: '0.25'   # Guarantee 25% of a CPU core
           memory: 128M   
     environment:
-      - PASSWORD=${WG_EASY_PASSWORD}
-      - WP_ALLOWED_IPS=192.168.15.0/24
+      - PASSWORD_HASH=${WG_EASY_PASSWORD}
+      - WG_HOST=wg-vpn.tlta.online
     networks:
       - web
     volumes:
@@ -301,15 +301,22 @@ services:
     sysctls:
       - net.ipv4.ip_forward=1
       - net.ipv4.conf.all.src_valid_mark=1
-      - net.ipv6.conf.all.disable_ipv6=0
-      - net.ipv6.conf.all.forwarding=1
-      - net.ipv6.conf.default.forwarding=1
     labels:
+      # traefik
       - "traefik.enable=true"
-      - "traefik.http.routers.wg-easy.rule=Host(`wg-vpn.tlta.online`)"
-      - "traefik.http.routers.wg-easy.entrypoints=websecure"
-      - "traefik.http.routers.wg-easy.service=wg-easy"
-      - "traefik.http.services.wg-easy.loadbalancer.server.port=51821"
+      - "traefik.http.services.WireGuardService.loadbalancer.server.port=51821"
+      # http to https
+      - "traefik.http.routers.WireGuardRoute.service=WireGuardService"
+      # ⚠️ Required:
+      - "traefik.http.routers.WireGuardRoute.rule=Host(`wg-vpn.tlta.online`)"
+      - "traefik.http.routers.WireGuardRoute.entrypoints=web"
+      - "traefik.http.routers.WireGuardRoute.middlewares=HttpToHttpsRedirectMiddleware"
+      # https
+      - "traefik.http.routers.WireGuardRouteSSL.service=WireGuardService"
+      # ⚠️ Required:
+      - "traefik.http.routers.WireGuardRouteSSL.rule=Host(`wg-vpn.tlta.online`)"
+      - "traefik.http.routers.WireGuardRouteSSL.entrypoints=websecure"
+      - "traefik.http.routers.WireGuardRouteSSL.tls.certresolver=MainCertResolver"
 
 
   # pihole:
