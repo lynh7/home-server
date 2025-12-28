@@ -287,7 +287,7 @@ services:
       - PASSWORD_HASH=${WG_EASY_PASSWORD}
       - WG_HOST=${WG_DOMAIN}
       - WG_DEFAULT_DNS=1.1.1.1
-      - WG_DEVICE=${WG_DEVICE} #eth0 - check: ip route get 1.1.1.1 | awk '{print $5}'
+      - WG_DEVICE=${WG_DEVICE} #eth0 - check: ip route get 1.1.1.1 | awk '{print $5}' |  Turn off Cloudflare DNS record proxy for WG_DOMAIN
       - WG_MTU=1420
     networks:
       - web
