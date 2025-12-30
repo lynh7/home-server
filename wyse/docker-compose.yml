@@ -6,8 +6,16 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16 # Static Docker bridge network subnet
-  # macvlan_net:
-  #   external: true
+  enx:
+    driver: macvlan
+    external: false
+    driver_opts:
+      parent: enx00e04c8807d8  # Second NIC
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+          ip_range: 192.168.1.111/32
 
 services:
 
@@ -321,6 +329,19 @@ services:
       - "traefik.http.routers.WireGuardRouteSSL.entrypoints=websecure"
       - "traefik.http.routers.WireGuardRouteSSL.tls.certresolver=MainCertResolver"
 
+  adguard:
+    image: adguard/adguardhome
+    container_name: adguard
+    restart: unless-stopped
+    networks:
+      web:
+        ipv4_address: 172.20.0.10  # Static IP on the bridge
+      enx:
+        ipv4_address: 192.168.1.111 # Static IP on the second NIC
+    volumes:
+      - ./adguard-work:/opt/adguardhome/workververver
+      - ./adguard-conf:/opt/adguardhome/conf
+
 
   # pihole:
   #     image: pihole/pihole:2025.07.1
@@ -370,3 +391,5 @@ volumes:
     name: traefik-data
   etc_wireguard:
     name: etc_wireguard
+  adguard-work:
+    name: adguard-work
