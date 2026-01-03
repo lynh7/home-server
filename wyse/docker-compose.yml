@@ -55,30 +55,6 @@ services:
   #   restart: unless-stopped
   #   command: -conf /etc/coredns/Corefile
 
-  oauth2-proxy:
-    image: thomseddon/traefik-forward-auth:latest
-    container_name: oauth2-proxy
-    mem_limit: 128m
-    cpus: 0.25
-    restart: unless-stopped
-    environment:
-      - SECRET=${OAUTH2_COOKIE_SECRET}
-      - PROVIDERS_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - PROVIDERS_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - URL_PATH=auth.${CLUSTER_DOMAIN}
-      - LIFETIME=86400
-    labels:
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.address=http://traefik-forward-auth:4181"
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders=X-Forwarded-User"
-      - "traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181"
-    networks:
-      - web
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "2m"
-        max-file: "5"
-  
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
     container_name: ddns-cloudflare
