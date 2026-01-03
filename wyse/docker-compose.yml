@@ -122,7 +122,8 @@ services:
       - ./traefik/letsencrypt:/letsencrypt
       - traefik-data:/etc/traefik
     networks:
-      - web
+      web:
+        ipv4_address: 172.20.0.5  # Static IP on the bridge
     logging:
       driver: "json-file"
       options:
