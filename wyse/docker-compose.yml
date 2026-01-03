@@ -35,6 +35,9 @@ services:
       - "traefik.http.routers.main-https.tls=true"
       - "traefik.http.routers.main-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.main-https.service=main-https"
+      - "traefik.http.routers.main-https.middlewares=crowdsec-main-https@docker" 
+      - "traefik.http.middlewares.crowdsec-main-https.plugin.crowdsec-bouncer.enabled=true"
+      - "traefik.http.middlewares.crowdsec-main-https.plugin.crowdsec-bouncer.crowdseclapikey=${LAPI_KEY}"
 
       - "traefik.http.services.main-https.loadbalancer.server.port=80"
 
@@ -44,17 +47,7 @@ services:
       - ./nginx:/usr/share/nginx/html:ro
     networks:
       - web
-
-  # coredns:
-  #   image: coredns/coredns:latest
-  #   container_name: coredns
-  #   network_mode: "host"
-  #   ports:
-  #     - "192.168.1.100:53:53/udp"
-  #     - "192.168.1.100:53:53/tcp"
-  #   restart: unless-stopped
-  #   command: -conf /etc/coredns/Corefile
-
+  
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
     container_name: ddns-cloudflare
@@ -117,10 +110,12 @@ services:
     ports:
       - "443:443/tcp"
       - "443:443/udp"
+      - "8085:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/letsencrypt:/letsencrypt
       - traefik-data:/etc/traefik
+      - ./traefik/logs:/var/log/traefik
     networks:
       web:
         ipv4_address: 172.20.0.5  # Static IP on the bridge
@@ -129,17 +124,19 @@ services:
       options:
         max-size: "2m"
         max-file: "5"
+    depends_on:
+      - crowdsec
     security_opt:
       - no-new-privileges:true
     command:
       - "--log.level=INFO"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--api.dashboard=false" #Will enable later
+      - "--api.insecure=true"
 
       # Define entrypoints for HTTPS
       - "--entryPoints.websecure.address=:443"
-      
+
       # Set up LetsEncrypt certificate resolver
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
@@ -152,33 +149,15 @@ services:
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
       - "--entrypoints.websecure.http.tls.domains[0].main=*.tlta.online"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.tks-cluster.tlta.online"
+
+      # --- CROWDSEC PLUGIN CONFIGURATION ---
+      - --experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      - --experimental.plugins.crowdsec-bouncer.version=v1.2.1
     environment:
       - CF_API_EMAIL=${CF_API_EMAIL}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     labels:
       - "traefik.enable=true"
-      
-      ################################################################################
-      # HTTP CONFIGURATION
-      ################################################################################
-      - "traefik.http.routers.wordpress-dev01-http.rule=Host(`wp.tks-dev01.tlta.online`)"
-      - "traefik.http.routers.wordpress-dev01-http.service=wordpress-dev01-http"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION
-      ################################################################################
-      - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
-      
-      ################################################################################
-      # HTTP CONFIGURATION - WORDPRESS PROD
-      ################################################################################
-      - "traefik.http.routers.wordpress-prod01-http.rule=Host(`wp.tlta.online`)"
-      - "traefik.http.routers.wordpress-prod01-http.service=wordpress-prod01-http"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION
-      ################################################################################
-      - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
 
       ################################################################################
       # MIDDLEWARE CONFIGURATION - MinIO
@@ -258,7 +237,27 @@ services:
       ################################################################################
       - "traefik.http.services.longhorn-https.loadbalancer.server.url=http://192.168.10.40"
       - "traefik.http.services.longhorn-https.loadbalancer.passhostheader=true"
-      
+  
+  crowdsec:
+    image: crowdsecurity/crowdsec
+    container_name: crowdsec
+    mem_limit: 128m
+    cpus: 0.15
+    restart: always
+    networks:
+      - web
+    expose:
+      - "8080"
+    environment:
+      COLLECTIONS: "crowdsecurity/nginx"
+      GID: "${GID-1000}"
+    volumes:
+      - ./crowdsec:/etc/crowdsec
+      - crowdsec-db:/var/lib/crowdsec/data/
+      - ./traefik/logs:/var/log/traefik # Traefik logs for crowdsec bouncer
+    labels:
+      - traefik.enable=false
+
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy:14
     container_name: wireguard-vpn
@@ -298,6 +297,9 @@ services:
       - "traefik.http.routers.WireGuardRouteSSL.rule=Host(`wg-vpn.tlta.online`)"
       - "traefik.http.routers.WireGuardRouteSSL.entrypoints=websecure"
       - "traefik.http.routers.WireGuardRouteSSL.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.WireGuardRouteSSL.middlewares=crowdsec-WireGuardRouteSSL@docker" 
+      - "traefik.http.middlewares.crowdsec-WireGuardRouteSSL.plugin.crowdsec-bouncer.enabled=true"
+      - "traefik.http.middlewares.crowdsec-WireGuardRouteSSL.plugin.crowdsec-bouncer.crowdseclapikey=${LAPI_KEY}"
 
   adguard:
     image: adguard/adguardhome
@@ -311,6 +313,34 @@ services:
     volumes:
       - ./adguard-work:/opt/adguardhome/workververver
       - ./adguard-conf:/opt/adguardhome/conf
+
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:2.33.6
+    restart: unless-stopped
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    networks:
+      - web
+    ports:
+      - 9443:9443
+    labels:
+      # Frontend
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`portainer.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.services.frontend.loadbalancer.server.port=9000"
+      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+
+      # Edge
+      - "traefik.http.routers.edge.rule=Host(`edge-portainer.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.edge.entrypoints=websecure"
+      - "traefik.http.services.edge.loadbalancer.server.port=8000"
+      - "traefik.http.routers.edge.service=edge"
+      - "traefik.http.routers.edge.tls.certresolver=letsencrypt"
         
 volumes:
   # pihole-data:
@@ -321,3 +351,7 @@ volumes:
     name: etc_wireguard
   adguard-work:
     name: adguard-work
+  portainer_data:
+    name: portainer_data
+  crowdsec-db:
+    name: crowdsec-db
