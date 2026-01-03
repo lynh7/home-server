@@ -117,6 +117,7 @@ services:
     ports:
       - "443:443/tcp"
       - "443:443/udp"
+      - "8085:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/letsencrypt:/letsencrypt
@@ -135,7 +136,7 @@ services:
       - "--log.level=INFO"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--api.dashboard=false" #Will enable later
+      - "--api.insecure=true"
 
       # Define entrypoints for HTTPS
       - "--entryPoints.websecure.address=:443"
