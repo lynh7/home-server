@@ -304,6 +304,8 @@ services:
   adguard:
     image: adguard/adguardhome
     container_name: adguard
+    mem_limit: 256m
+    cpus: 0.15
     restart: unless-stopped
     networks:
       web:
