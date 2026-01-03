@@ -45,16 +45,6 @@ services:
     networks:
       - web
 
-  # coredns:
-  #   image: coredns/coredns:latest
-  #   container_name: coredns
-  #   network_mode: "host"
-  #   ports:
-  #     - "192.168.1.100:53:53/udp"
-  #     - "192.168.1.100:53:53/tcp"
-  #   restart: unless-stopped
-  #   command: -conf /etc/coredns/Corefile
-
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
     container_name: ddns-cloudflare
