@@ -112,6 +112,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/letsencrypt:/letsencrypt
       - traefik-data:/etc/traefik
+      - ./traefik/logs:/var/log/traefik
     networks:
       web:
         ipv4_address: 172.20.0.5  # Static IP on the bridge
@@ -120,6 +121,8 @@ services:
       options:
         max-size: "2m"
         max-file: "5"
+    depends_on:
+      - crowdsec
     security_opt:
       - no-new-privileges:true
     command:
@@ -143,33 +146,15 @@ services:
       - "--entrypoints.websecure.http.tls.certResolver=letsencrypt"
       - "--entrypoints.websecure.http.tls.domains[0].main=*.tlta.online"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.tks-cluster.tlta.online"
+
+      # --- CROWDSEC PLUGIN CONFIGURATION ---
+      - --experimental.plugins.crowdsec-bouncer.modulename=github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin
+      - --experimental.plugins.crowdsec-bouncer.version=v1.2.1
     environment:
       - CF_API_EMAIL=${CF_API_EMAIL}
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     labels:
       - "traefik.enable=true"
-      
-      ################################################################################
-      # HTTP CONFIGURATION
-      ################################################################################
-      - "traefik.http.routers.wordpress-dev01-http.rule=Host(`wp.tks-dev01.tlta.online`)"
-      - "traefik.http.routers.wordpress-dev01-http.service=wordpress-dev01-http"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION
-      ################################################################################
-      - "traefik.http.services.wordpress-dev01-http.loadbalancer.server.url=http://192.168.10.40"
-      
-      ################################################################################
-      # HTTP CONFIGURATION - WORDPRESS PROD
-      ################################################################################
-      - "traefik.http.routers.wordpress-prod01-http.rule=Host(`wp.tlta.online`)"
-      - "traefik.http.routers.wordpress-prod01-http.service=wordpress-prod01-http"
-      
-      ################################################################################
-      # SERVICE - LOAD BALANCER CONFIGURATION
-      ################################################################################
-      - "traefik.http.services.wordpress-prod01-http.loadbalancer.server.url=http://192.168.10.40"
 
       ################################################################################
       # MIDDLEWARE CONFIGURATION - MinIO
@@ -249,6 +234,26 @@ services:
       ################################################################################
       - "traefik.http.services.longhorn-https.loadbalancer.server.url=http://192.168.10.40"
       - "traefik.http.services.longhorn-https.loadbalancer.passhostheader=true"
+  
+  crowdsec:
+    image: crowdsecurity/crowdsec
+    container_name: crowdsec
+    mem_limit: 128m
+    cpus: 0.15
+    restart: always
+    networks:
+      - web
+    expose:
+      - "8080"
+    environment:
+      COLLECTIONS: "crowdsecurity/nginx"
+      GID: "${GID-1000}"
+    volumes:
+      - ./crowdsec:/etc/crowdsec
+      - crowdsec-db:/var/lib/crowdsec/data/
+      - ./traefik/logs:/var/log/traefik # Traefik logs for crowdsec bouncer
+    labels:
+      - traefik.enable=false
       
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy:14
@@ -342,3 +347,5 @@ volumes:
     name: adguard-work
   portainer_data:
     name: portainer_data
+  crowdsec-db:
+    name: crowdsec-db
