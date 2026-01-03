@@ -1,12 +1,21 @@
 networks:
   web:
     name: web
+    external: false
     driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16 # Static Docker bridge network subnet
-  # macvlan_net:
-  #   external: true
+  enx:
+    driver: macvlan
+    external: false
+    driver_opts:
+      parent: enx00e04c8807d8  # Second NIC
+    ipam:
+      config:
+        - subnet: 192.168.1.0/24
+          gateway: 192.168.1.1
+          ip_range: 192.168.1.111/32
 
 services:
 
@@ -46,30 +55,6 @@ services:
   #   restart: unless-stopped
   #   command: -conf /etc/coredns/Corefile
 
-  oauth2-proxy:
-    image: thomseddon/traefik-forward-auth:latest
-    container_name: oauth2-proxy
-    mem_limit: 128m
-    cpus: 0.25
-    restart: unless-stopped
-    environment:
-      - SECRET=${OAUTH2_COOKIE_SECRET}
-      - PROVIDERS_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - PROVIDERS_GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - URL_PATH=auth.${CLUSTER_DOMAIN}
-      - LIFETIME=86400
-    labels:
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.address=http://traefik-forward-auth:4181"
-      - "traefik.http.middlewares.traefik-forward-auth.forwardauth.authResponseHeaders=X-Forwarded-User"
-      - "traefik.http.services.traefik-forward-auth.loadbalancer.server.port=4181"
-    networks:
-      - web
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "2m"
-        max-file: "5"
-  
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
     container_name: ddns-cloudflare
@@ -79,6 +64,8 @@ services:
     read_only: true
     cap_drop: [all]
     security_opt: [no-new-privileges:true]
+    networks:
+      - web
     environment:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
       - DOMAINS=${DOMAINS}
@@ -125,16 +112,18 @@ services:
     image: traefik:v3.6
     mem_limit: 256m
     cpus: 0.5
-    container_name: reverse-proxy-v2
+    container_name: reverse-proxy
     restart: always
     ports:
-      - "443:443"   # Router forwards external 443 → host 443 → container 443
+      - "443:443/tcp"
+      - "443:443/udp"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik/letsencrypt:/letsencrypt
       - traefik-data:/etc/traefik
     networks:
-      - web
+      web:
+        ipv4_address: 172.20.0.5  # Static IP on the bridge
     logging:
       driver: "json-file"
       options:
@@ -270,50 +259,65 @@ services:
       - "traefik.http.services.longhorn-https.loadbalancer.server.url=http://192.168.10.40"
       - "traefik.http.services.longhorn-https.loadbalancer.passhostheader=true"
       
-    
-  # pihole:
-  #     image: pihole/pihole:2025.07.1
-  #     mem_limit: 256m
-  #     cpus: 0.5
-  #     container_name: pihole
-  #     hostname: pihole
-  #     restart: unless-stopped
-  #     networks:
-  #       macvlan_net:
-  #         ipv4_address: 192.168.1.98
-  #     ports:
-  #       # DNS Ports
-  #       - "53:53/tcp"
-  #       - "53:53/udp"
-  #       # Default HTTP Port
-  #       - "80:80/tcp"
-  #       # Default HTTPs Port. FTL will generate a self-signed certificate
-  #       - "443:443/tcp"
-  #       # Uncomment the below if using Pi-hole as your DHCP Server
-  #       - "67:67/udp"
-  #     environment:
-  #       TZ: "VN"
-  #       FTLCONF_webserver_api_password: ${PIHOLE_PASSWORD}
-  #       DNSMASQ_LISTENING: "all"
-  #       FTLCONF_dns_upstreams: '1.1.1.1;1.0.0.1;2606:4700:4700::1111;2606:4700:4700::1001' #cloudflare DNS
-  #       #FTLCONF_dns_upstreams: '9.9.9.9;149.112.112.112' #Quad9 DNS
-  #     volumes:
-  #       - pihole-data:/etc/pihole
-  #     cap_add:
-  #       - NET_ADMIN
-  #     healthcheck:
-  #       test: ["CMD", "dig", "@127.0.0.1", "google.com"]
-  #       interval: 1m
-  #       timeout: 10s
-  #       retries: 3
-  #     logging:
-  #       driver: "json-file"
-  #       options:
-  #         max-size: "10m"
-  #         max-file: "3"
+  wg-easy:
+    image: ghcr.io/wg-easy/wg-easy:14
+    container_name: wireguard-vpn
+    deploy:
+      resources:
+        limits:
+          cpus: 1    # Limit to 50% of a single CPU core
+          memory: '1G'   # Limit memory to 512MB
+        reservations:
+          cpus: '0.25'   # Guarantee 25% of a CPU core
+          memory: 128M   
+    environment:
+      - PASSWORD_HASH=${WG_EASY_PASSWORD}
+      - WG_HOST=${WG_DOMAIN}
+      - WG_DEFAULT_DNS=192.168.1.111 #Adguard DNS server
+      - WG_DEVICE=${WG_DEVICE} #eth0 - check: ip route get 1.1.1.1 | awk '{print $5}' |  Turn off Cloudflare DNS record proxy for WG_DOMAIN
+      - WG_MTU=1420
+    networks:
+      - web
+    volumes:
+      - etc_wireguard:/etc/wireguard
+      - /lib/modules:/lib/modules:ro
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.services.WireGuardService.loadbalancer.server.port=51821"
+      - "traefik.http.routers.WireGuardRouteSSL.service=WireGuardService"
+      - "traefik.http.routers.WireGuardRouteSSL.rule=Host(`wg-vpn.tlta.online`)"
+      - "traefik.http.routers.WireGuardRouteSSL.entrypoints=websecure"
+      - "traefik.http.routers.WireGuardRouteSSL.tls.certresolver=letsencrypt"
+
+  adguard:
+    image: adguard/adguardhome
+    container_name: adguard
+    restart: unless-stopped
+    networks:
+      web:
+        ipv4_address: 172.20.0.10  # Static IP on the bridge
+      enx:
+        ipv4_address: 192.168.1.111 # Static IP on the second NIC
+    volumes:
+      - ./adguard-work:/opt/adguardhome/workververver
+      - ./adguard-conf:/opt/adguardhome/conf
         
 volumes:
   # pihole-data:
   #   external: true # Use volume
   traefik-data:
     name: traefik-data
+  etc_wireguard:
+    name: etc_wireguard
+  adguard-work:
+    name: adguard-work

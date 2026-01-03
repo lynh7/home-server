@@ -25,6 +25,9 @@ data/
 
 # Ignore etc-pihole directory, this is managed by Docker compose
 wyse/pihole
+# Ignore AdGuard Home configuration and work directories
+wyse/adguard-conf
+wyse/adguard-work
 wyse/traefik/letsencrypt/
 # Ignore letsencrypt folder inside traefik folder
 proxmox/
