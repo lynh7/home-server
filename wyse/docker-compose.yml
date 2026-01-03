@@ -35,6 +35,9 @@ services:
       - "traefik.http.routers.main-https.tls=true"
       - "traefik.http.routers.main-https.tls.certresolver=letsencrypt"
       - "traefik.http.routers.main-https.service=main-https"
+      - "traefik.http.routers.main-https.middlewares=crowdsec-main-https@docker" 
+      - "traefik.http.middlewares.crowdsec-main-https.plugin.crowdsec-bouncer.enabled=true"
+      - "traefik.http.middlewares.crowdsec-main-https.plugin.crowdsec-bouncer.crowdseclapikey=${LAPI_KEY}"
 
       - "traefik.http.services.main-https.loadbalancer.server.port=80"
 
@@ -44,7 +47,7 @@ services:
       - ./nginx:/usr/share/nginx/html:ro
     networks:
       - web
-
+  
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
     container_name: ddns-cloudflare
@@ -133,7 +136,7 @@ services:
 
       # Define entrypoints for HTTPS
       - "--entryPoints.websecure.address=:443"
-      
+
       # Set up LetsEncrypt certificate resolver
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.dnschallenge.provider=cloudflare"
@@ -254,7 +257,7 @@ services:
       - ./traefik/logs:/var/log/traefik # Traefik logs for crowdsec bouncer
     labels:
       - traefik.enable=false
-      
+
   wg-easy:
     image: ghcr.io/wg-easy/wg-easy:14
     container_name: wireguard-vpn
@@ -294,6 +297,9 @@ services:
       - "traefik.http.routers.WireGuardRouteSSL.rule=Host(`wg-vpn.tlta.online`)"
       - "traefik.http.routers.WireGuardRouteSSL.entrypoints=websecure"
       - "traefik.http.routers.WireGuardRouteSSL.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.WireGuardRouteSSL.middlewares=crowdsec-WireGuardRouteSSL@docker" 
+      - "traefik.http.middlewares.crowdsec-WireGuardRouteSSL.plugin.crowdsec-bouncer.enabled=true"
+      - "traefik.http.middlewares.crowdsec-WireGuardRouteSSL.plugin.crowdsec-bouncer.crowdseclapikey=${LAPI_KEY}"
 
   adguard:
     image: adguard/adguardhome
