@@ -46,7 +46,8 @@ services:
     volumes:
       - ./nginx:/usr/share/nginx/html:ro
     networks:
-      - web
+      web:
+        ipv4_address: 172.20.0.2  # Static IP on the bridge
   
   cloudflare-ddns:
     image: favonia/cloudflare-ddns:latest
@@ -58,7 +59,8 @@ services:
     cap_drop: [all]
     security_opt: [no-new-privileges:true]
     networks:
-      - web
+      web:
+        ipv4_address: 172.20.0.3  # Static IP on the bridge
     environment:
       - CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
       - DOMAINS=${DOMAINS}
@@ -88,7 +90,8 @@ services:
     ports:
       - 8082:80
     networks:
-      - web
+      web:
+        ipv4_address: 172.20.0.4  # Static IP on the bridge
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
@@ -245,7 +248,8 @@ services:
     cpus: 0.15
     restart: always
     networks:
-      - web
+      web:
+        ipv4_address: 172.20.0.9  # Static IP on the bridge
     expose:
       - "8080"
     environment:
@@ -276,7 +280,8 @@ services:
       - WG_DEVICE=${WG_DEVICE} #eth0 - check: ip route get 1.1.1.1 | awk '{print $5}' |  Turn off Cloudflare DNS record proxy for WG_DOMAIN
       - WG_MTU=1420
     networks:
-      - web
+      web:
+        ipv4_address: 172.20.0.6  # Static IP on the bridge
     volumes:
       - etc_wireguard:/etc/wireguard
       - /lib/modules:/lib/modules:ro
@@ -324,8 +329,11 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
-    networks:
-      - web
+    networks:  
+      web:
+        ipv4_address: 172.20.0.8  # Static IP on the bridge
+    depends_on:
+      - traefik-v2
     ports:
       - 9443:9443
     labels:
