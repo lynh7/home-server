@@ -55,6 +55,13 @@ services:
     restart: always
     # Restart the updater after reboot
     user: "1000:1000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '128M'
+        reservations:
+          memory: '64M' 
     read_only: true
     cap_drop: [all]
     security_opt: [no-new-privileges:true]
@@ -326,6 +333,13 @@ services:
     image: portainer/portainer-ce:2.33.6
     restart: unless-stopped
     command: -H unix:///var/run/docker.sock
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '128M'
+        reservations:
+          memory: '64M' 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
