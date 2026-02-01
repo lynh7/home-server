@@ -4,7 +4,10 @@ There are two main branches that will be developed in parallel:
 
 - **proxmox/** — [the cluster machine](https://github.com/lynh7/home-server/tree/proxmox/1.0.0)
 - **wyse/** — [the agent machine](https://github.com/lynh7/home-server/tree/wyse/1.1.0)
-<img width="1612" height="412" alt="Screenshot From 2026-01-08 21-13-27" src="https://github.com/user-attachments/assets/0c4a7bb5-b74c-4724-b395-24faff6fce26" />
+
+Having new degsin recently, I've added a new host which need to be rebuild the whole old setup. I could also add Opnsense add a firewall but until there I have a lot of works need to be done. :)!
+<img width="1794" height="702" alt="image" src="https://github.com/user-attachments/assets/8086035c-a51a-49bd-8763-42b1cfb02a4d" />
+
 
 
 
