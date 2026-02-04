@@ -378,7 +378,7 @@ services:
         reservations:
           memory: '64M' 
     environment:
-      DOMAIN: "https://vw.tks-cluster.tlta.online"
+      DOMAIN: "https://vw.tlta.online"
     volumes:
       - ./vw-data/:/data/
     ports:
@@ -390,13 +390,11 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.VaultwardenService.loadbalancer.server.port=80"
       - "traefik.http.routers.VaultwardenRouteSSL.service=VaultwardenService"
-      - "traefik.http.routers.VaultwardenRouteSSL.rule=Host(`vw.tks-cluster.tlta.online`)"
+      - "traefik.http.routers.VaultwardenRouteSSL.rule=Host(`vw.tlta.online`)"
       - "traefik.http.routers.VaultwardenRouteSSL.entrypoints=websecure"
       - "traefik.http.routers.VaultwardenRouteSSL.tls.certresolver=letsencrypt"
 
 volumes:
-  # pihole-data:
-  #   external: true # Use volume
   traefik-data:
     name: traefik-data
   etc_wireguard:
