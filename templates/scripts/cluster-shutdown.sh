@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-MASTER_NODE_1="10.10.0.30"
-MASTER_NODE_2="10.10.0.31"
-MASTER_NODE_3="10.10.0.32"
+MASTER_NODE_0="10.10.0.30"
+MASTER_NODE_1="10.10.0.31"
+MASTER_NODE_2="10.10.0.32"
 WORKER_NODE_1="10.10.0.34"
 WORKER_NODE_2="10.10.0.35"
 
@@ -46,15 +46,6 @@ function shutdown_cluster() {
   
   shutdown_log "4️⃣  Checking master nodes connectivity..."
   
-  if talosctl --nodes $MASTER_NODE_1 version &> /dev/null; then
-    shutdown_log "   Shutting down master node 1..."
-    talosctl shutdown --nodes $MASTER_NODE_1  || {
-      shutdown_log "Master node 1 shutdown failed"
-    }
-  else
-    shutdown_log "   Master node 1 is already stopped or unreachable, skipping..."
-  fi
-  
   if talosctl --nodes $MASTER_NODE_2 version &> /dev/null; then
     shutdown_log "   Shutting down master node 2..."
     talosctl shutdown --nodes $MASTER_NODE_2  || {
@@ -64,13 +55,22 @@ function shutdown_cluster() {
     shutdown_log "   Master node 2 is already stopped or unreachable, skipping..."
   fi
   
-  if talosctl --nodes $MASTER_NODE_3 version &> /dev/null; then
-    shutdown_log "   Shutting down master node 3..."
-    talosctl shutdown --nodes $MASTER_NODE_3  || {
-      shutdown_log "Master node 3 shutdown failed"
+  if talosctl --nodes $MASTER_NODE_1 version &> /dev/null; then
+    shutdown_log "   Shutting down master node 1..."
+    talosctl shutdown --nodes $MASTER_NODE_1  || {
+      shutdown_log "Master node 1 shutdown failed"
     }
   else
-    shutdown_log "   Master node 3 is already stopped or unreachable, skipping..."
+    shutdown_log "   Master node 1 is already stopped or unreachable, skipping..."
+  fi
+  
+  if talosctl --nodes $MASTER_NODE_0 version &> /dev/null; then
+    shutdown_log "   Shutting down master node 0..."
+    talosctl shutdown --nodes $MASTER_NODE_0  || {
+      shutdown_log "Master node 0 shutdown failed"
+    }
+  else
+    shutdown_log "   Master node 0 is already stopped or unreachable, skipping..."
   fi
   
   shutdown_log "✅ All Talos nodes shutdown sequence completed."
