@@ -21,15 +21,15 @@ helmDefaults:
   createNamespace: true
 
 releases:     
-  - name: wordpress-stack
-    needs:
-      - longhorn-system/longhorn
-      - networking/networking-stack
-    namespace: wordpress-dev01
-    chart: ../helm-charts/wordpress-stack
-    values:
-      - ./values/dev01/values.yaml
-      - ./values/wordpress-stack-secrets.yaml.gotmpl
+  # - name: wordpress-stack
+  #   needs:
+  #     - longhorn-system/longhorn
+  #     - networking/networking-stack
+  #   namespace: wordpress-dev01
+  #   chart: ../helm-charts/wordpress-stack
+  #   values:
+  #     - ./values/dev01/values.yaml
+  #     - ./values/wordpress-stack-secrets.yaml.gotmpl
   
   # - name: wordpress-stack
   #   needs:
@@ -62,26 +62,24 @@ releases:
 
   #could combine to 1 release later
 
-  - name: minio
-    namespace: minio
-    chart: ../helm-charts/minio-s3
-    values:
-      - ./values/minio-values.yaml.gotmpl
+  # - name: minio
+  #   namespace: minio
+  #   chart: ../helm-charts/minio-s3
+  #   values:
+  #     - ./values/minio-values.yaml.gotmpl
 
   #CSI storage drivers
   - name: longhorn
-    needs:
-      - networking/networking-stack
     namespace: longhorn-system
     chart: ../helm-charts/longhorn
     values:
       - ./values/longhorn-values.yaml
 
-  - name: networking-stack #First rollout
-    namespace: networking
-    chart: ../helm-charts/networking-stack
-    values:
-      - ../helm-charts/networking-stack/values.yaml
+  # - name: networking-stack #First rollout
+  #   namespace: networking
+  #   chart: ../helm-charts/networking-stack
+  #   values:
+  #     - ../helm-charts/networking-stack/values.yaml
   
   # Certmanager for TLS certs
   # - name: cert-manager
