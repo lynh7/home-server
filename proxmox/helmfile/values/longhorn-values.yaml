@@ -1,4 +1,3 @@
-ingress:
-  enabled: enable
-  ingressClassName: nginx
-  host: longhorn.tks-cluster.lab
+global:
+  nodeSelector: 
+    kubernetes.io/hostname: talos-zhn-q2t #VM101-worker-1
