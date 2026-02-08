@@ -1,4 +1,4 @@
-# Home Server - TLTA
+# Home Server
 
 There are two main branches that will be developed in parallel:
 
