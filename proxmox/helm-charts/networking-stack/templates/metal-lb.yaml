@@ -2,7 +2,7 @@ apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
   name: stack-pool
-  namespace: networking
+  namespace: metallb-system
 spec:
   addresses:
     - 10.10.0.20-10.10.0.29
@@ -11,7 +11,7 @@ apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
   name: stack-l2adv
-  namespace: networking
+  namespace: metallb-system
 spec:
   ipAddressPools:
   - stack-pool
