@@ -19,17 +19,6 @@ function shutdown_cluster() {
   clear
   shutdown_log "Shutting down cluster (VMs only)..."
   
-  # Check if worker node 1 is reachable before attempting shutdown
-  shutdown_log "1️⃣  Checking worker node 1 connectivity..."
-  if talosctl --nodes $WORKER_NODE_1 version &> /dev/null; then
-    shutdown_log "   Draining workloads from worker node 1..."
-    talosctl shutdown --nodes $WORKER_NODE_1  || {
-      shutdown_log "Worker node 1 shutdown failed"
-    }
-  else
-    shutdown_log "   Worker node 1 is already stopped or unreachable, skipping..."
-  fi
-  
   # Check if worker node 2 is reachable before attempting shutdown
   shutdown_log "2️⃣  Checking worker node 2 connectivity..."
   if talosctl --nodes $WORKER_NODE_2 version  &> /dev/null; then
@@ -39,6 +28,17 @@ function shutdown_cluster() {
     }
   else
     shutdown_log "   Worker node 2 is already stopped or unreachable, skipping..."
+  fi
+
+  # Check if worker node 1 is reachable before attempting shutdown
+  shutdown_log "1️⃣  Checking worker node 1 connectivity..."
+  if talosctl --nodes $WORKER_NODE_1 version &> /dev/null; then
+    shutdown_log "   Draining workloads from worker node 1..."
+    talosctl shutdown --nodes $WORKER_NODE_1  || {
+      shutdown_log "Worker node 1 shutdown failed"
+    }
+  else
+    shutdown_log "   Worker node 1 is already stopped or unreachable, skipping..."
   fi
   
   shutdown_log "3️⃣  Waiting 20 seconds to allow workers to stop gracefully..."
