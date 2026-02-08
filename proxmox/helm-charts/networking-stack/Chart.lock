@@ -2,8 +2,5 @@ dependencies:
 - name: metallb
   repository: file://./dependencies/metallb
   version: 0.15.2
-- name: ingress-nginx
-  repository: file://./dependencies/ingress-nginx
-  version: 4.14.0
-digest: sha256:7a74f9167e625057d045c121a01e5fb17af34493c21063c5907a1e7d3b901b5f
-generated: "2025-11-17T22:49:57.869841536+07:00"
+digest: sha256:d749c087e54d58b3e22495f0f74a7a3727c921daedd8ad1b11fd4aa55bab3078
+generated: "2026-02-08T12:37:11.457827677+07:00"

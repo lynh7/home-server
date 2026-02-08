@@ -7,6 +7,3 @@ dependencies:
   - name: metallb
     version: 0.15.2
     repository: file://./dependencies/metallb
-  - name: ingress-nginx
-    version: 4.14.0
-    repository: file://./dependencies/ingress-nginx
