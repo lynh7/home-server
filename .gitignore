@@ -1,2 +1,1 @@
-./talos-cluster
-./templates/scripts/talosconfig
+talos-cluster/
