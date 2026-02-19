@@ -85,6 +85,7 @@ data:
   default-setting.yaml: |-
     priority-class: longhorn-critical
     disable-revision-counter: true
+    deleting-confirmation-flag: true
 ---
 # Source: longhorn/templates/storageclass.yaml
 apiVersion: v1
