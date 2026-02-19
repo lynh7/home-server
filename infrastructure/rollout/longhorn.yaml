@@ -20,7 +20,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: longhorn-service-account
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -33,7 +33,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: longhorn-ui-service-account
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -46,7 +46,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: longhorn-support-bundle
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -59,7 +59,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: longhorn-default-resource
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -74,7 +74,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: longhorn-default-setting
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -91,7 +91,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: longhorn-storageclass
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -540,7 +540,7 @@ spec:
       clientConfig:
         service:
           name: longhorn-conversion-webhook
-          namespace: default
+          namespace: longhorn-system
           path: /v1/webhook/conversion
           port: 9501
       conversionReviewVersions:
@@ -1191,7 +1191,7 @@ spec:
       clientConfig:
         service:
           name: longhorn-conversion-webhook
-          namespace: default
+          namespace: longhorn-system
           path: /v1/webhook/conversion
           port: 9501
       conversionReviewVersions:
@@ -1600,7 +1600,7 @@ spec:
       clientConfig:
         service:
           name: longhorn-conversion-webhook
-          namespace: default
+          namespace: longhorn-system
           path: /v1/webhook/conversion
           port: 9501
       conversionReviewVersions:
@@ -2579,7 +2579,7 @@ spec:
       clientConfig:
         service:
           name: longhorn-conversion-webhook
-          namespace: default
+          namespace: longhorn-system
           path: /v1/webhook/conversion
           port: 9501
       conversionReviewVersions:
@@ -4435,7 +4435,7 @@ spec:
       clientConfig:
         service:
           name: longhorn-conversion-webhook
-          namespace: default
+          namespace: longhorn-system
           path: /v1/webhook/conversion
           port: 9501
       conversionReviewVersions:
@@ -4918,7 +4918,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: longhorn-service-account
-  namespace: default
+  namespace: longhorn-system
 ---
 # Source: longhorn/templates/clusterrolebinding.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -4938,7 +4938,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: longhorn-support-bundle
-  namespace: default
+  namespace: longhorn-system
 ---
 # Source: longhorn/templates/daemonset-sa.yaml
 apiVersion: v1
@@ -4952,7 +4952,7 @@ metadata:
     app.kubernetes.io/version: v1.9.0
     app: longhorn-manager
   name: longhorn-backend
-  namespace: default
+  namespace: longhorn-system
 spec:
   type: ClusterIP
   selector:
@@ -4974,7 +4974,7 @@ metadata:
     app.kubernetes.io/version: v1.9.0
     app: longhorn-ui
   name: longhorn-frontend
-  namespace: default
+  namespace: longhorn-system
 spec:
   type: ClusterIP
   selector:
@@ -4997,7 +4997,7 @@ metadata:
     app.kubernetes.io/version: v1.9.0
     app: longhorn-conversion-webhook
   name: longhorn-conversion-webhook
-  namespace: default
+  namespace: longhorn-system
 spec:
   type: ClusterIP
   selector:
@@ -5019,7 +5019,7 @@ metadata:
     app.kubernetes.io/version: v1.9.0
     app: longhorn-admission-webhook
   name: longhorn-admission-webhook
-  namespace: default
+  namespace: longhorn-system
 spec:
   type: ClusterIP
   selector:
@@ -5041,7 +5041,7 @@ metadata:
     app.kubernetes.io/version: v1.9.0
     app: longhorn-recovery-backend
   name: longhorn-recovery-backend
-  namespace: default
+  namespace: longhorn-system
 spec:
   type: ClusterIP
   selector:
@@ -5063,7 +5063,7 @@ metadata:
     app.kubernetes.io/version: v1.9.0
     app: longhorn-manager
   name: longhorn-manager
-  namespace: default
+  namespace: longhorn-system
 spec:
   selector:
     matchLabels:
@@ -5188,7 +5188,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: longhorn-driver-deployer
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -5270,7 +5270,7 @@ metadata:
     app.kubernetes.io/version: v1.9.0
     app: longhorn-ui
   name: longhorn-ui
-  namespace: default
+  namespace: longhorn-system
 spec:
   replicas: 2
   selector:
@@ -5340,7 +5340,7 @@ metadata:
     "helm.sh/hook": post-upgrade
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation
   name: longhorn-post-upgrade
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -5386,7 +5386,7 @@ metadata:
     "helm.sh/hook": pre-upgrade
     "helm.sh/hook-delete-policy": hook-succeeded,before-hook-creation,hook-failed
   name: longhorn-pre-upgrade
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
@@ -5440,7 +5440,7 @@ metadata:
     "helm.sh/hook": pre-delete
     "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
   name: longhorn-uninstall
-  namespace: default
+  namespace: longhorn-system
   labels:
     app.kubernetes.io/name: longhorn
     helm.sh/chart: longhorn-1.9.0
