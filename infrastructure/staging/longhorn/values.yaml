@@ -3,3 +3,12 @@ global:
     kubernetes.io/hostname: worker-1
 longhornUI:
   replicas: 1
+csi:
+  # -- Replica count of the CSI Attacher
+  attacherReplicaCount: 1
+  # -- Replica count of the CSI Provisioner
+  provisionerReplicaCount: 1
+  # -- Replica count of the CSI Resizer
+  resizerReplicaCount: 1
+  # -- Replica count of the CSI Snapshotter
+  snapshotterReplicaCount: 1
