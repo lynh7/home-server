@@ -38,10 +38,7 @@ jobs:
           for chart in ${{ steps.changed.outputs.charts }}; do
             echo "Rendering $chart"
 
-            REPO=$(yq '.repo' infrastructure/charts/$chart/Chart.yaml)
-            CHART=$(yq '.chart' infrastructure/charts/$chart/Chart.yaml)
-
-            helm template $chart $chart/$CHART \
+            helm template $chart infrastructure/charts/$chart \
               --values infrastructure/staging/$chart/values.yaml \
               > infrastructure/rollout/$chart.yaml
           done
