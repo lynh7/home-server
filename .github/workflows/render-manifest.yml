@@ -38,18 +38,12 @@ jobs:
           for chart in ${{ steps.changed.outputs.charts }}; do
             echo "Rendering $chart"
 
-            REPO=$(yq '.repo' infrastructure/charts/$chart/chart.yaml)
-            CHART=$(yq '.chart' infrastructure/charts/$chart/chart.yaml)
-            VERSION=$(yq '.version' infrastructure/charts/$chart/chart.yaml)
+            REPO=$(yq '.repo' infrastructure/charts/$chart/Chart.yaml)
+            CHART=$(yq '.chart' infrastructure/charts/$chart/Chart.yaml)
             NAMESPACE=$(yq '.namespace' infrastructure/charts/$chart/chart.yaml)
 
-            helm repo add $chart $REPO
-            helm repo update
-
             helm template $chart $chart/$CHART \
-              --version $VERSION \
               --namespace $NAMESPACE \
-              --create-namespace \
               --values infrastructure/staging/$chart/values.yaml \
               > infrastructure/rollout/$chart.yaml
           done
