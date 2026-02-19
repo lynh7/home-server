@@ -1,5 +1,8 @@
 name: Render Helm Manifests
 
+permissions:
+  contents: write
+
 on:
   push:
     paths:
