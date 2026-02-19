@@ -3,34 +3,36 @@ name: Render Helm Manifests
 on:
   push:
     paths:
-      - 'infrastructure/staging/longhorn/values.yaml' #Add more as needed
+      - 'infrastructure/staging/**/values.yaml'
 
 jobs:
-  detect-and-render:
+  render:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Helm
         uses: azure/setup-helm@v4
 
-      - name: Detect changed chart
-        id: changed
-        run: |
-          CHARTS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
-            | grep infrastructure/charts/ \
-            | cut -d/ -f3 \
-            | sort -u \
-            | tr '\n' ' ')
-          echo "charts=$CHARTS" >> $GITHUB_OUTPUT
-          
       - name: Install yq
         run: |
           sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
-      
+
+      - name: Detect changed charts
+        id: changed
+        run: |
+          CHARTS=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+            | grep infrastructure/staging/ \
+            | cut -d/ -f3 \
+            | sort -u \
+            | tr '\n' ' ')
+          echo "charts=$CHARTS" >> $GITHUB_OUTPUT
+
       - name: Render Charts
         run: |
           for chart in ${{ steps.changed.outputs.charts }}; do
@@ -48,14 +50,14 @@ jobs:
               --version $VERSION \
               --namespace $NAMESPACE \
               --create-namespace \
-              --values infrastructure/apps/$app/values.yaml \
-              > infrastructure/apps/$app/base/rendered.yaml
+              --values infrastructure/staging/$chart/values.yaml \
+              > infrastructure/rollout/$chart.yaml
           done
 
       - name: Commit rendered manifests
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add infrastructure/rollout/**/**.yaml
+          git add infrastructure/rollout/*.yaml
           git commit -m "Auto-render updated Helm manifests" || echo "No changes"
           git push
