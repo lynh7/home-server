@@ -1,4 +1,5 @@
 global:
   nodeSelector: 
     kubernetes.io/hostname: worker-1
+
     

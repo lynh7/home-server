@@ -40,10 +40,8 @@ jobs:
 
             REPO=$(yq '.repo' infrastructure/charts/$chart/Chart.yaml)
             CHART=$(yq '.chart' infrastructure/charts/$chart/Chart.yaml)
-            NAMESPACE=$(yq '.namespace' infrastructure/charts/$chart/chart.yaml)
 
             helm template $chart $chart/$CHART \
-              --namespace $NAMESPACE \
               --values infrastructure/staging/$chart/values.yaml \
               > infrastructure/rollout/$chart.yaml
           done
