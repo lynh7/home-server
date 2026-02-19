@@ -41,8 +41,17 @@ jobs:
           for chart in ${{ steps.changed.outputs.charts }}; do
             echo "Rendering $chart"
 
+            # Default namespace
+            NAMESPACE="default"
+
+            # If meta.yaml exists, read namespace from it
+            if [ -f infrastructure/charts/$chart/meta.yaml ]; then
+              NAMESPACE=$(yq '.namespace' infrastructure/charts/$chart/meta.yaml)
+            fi
+
             helm template $chart infrastructure/charts/$chart \
               --values infrastructure/staging/$chart/values.yaml \
+              --namespace $NAMESPACE \
               > infrastructure/rollout/$chart.yaml
           done
 
